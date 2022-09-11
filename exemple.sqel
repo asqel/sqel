@@ -1,0 +1,9 @@
+let x=3
+let x=x+3
+print(x)
+
+func f(k):
+    return k*2
+
+function h(k):
+    return k+2

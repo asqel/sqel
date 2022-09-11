@@ -1,0 +1,3 @@
+function def  :  -keyword:func / function
+
+variable      :  -keyword:let identifier eq expr 
