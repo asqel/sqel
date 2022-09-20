@@ -51,19 +51,13 @@ class Token:
 class lexer:
     def __init__(self,text) -> None:
         self.text=text
-        self.pos=-1
-        self.current_char=None
-        self.advance()
-    def advance(self):
-        self.pos+=1
-        self.current_char=self.text[self.pos]  if self.pos<len(self.text) else None
+        
+
     
     def make_tokens(self):
         tokens=[]
-        
         while self.current_char!=None:
             if self.current_char in " \t":
-                self.advance()
             elif self.current_char in DIGITS:
                 tokens.apppend(self.make_number())
             elif self.current_char=="+":

@@ -75,3 +75,8 @@ for i in range(0,len(text)):
             print(vars[i.strip()])
 print(vars)
 
+
+
+
+
+
