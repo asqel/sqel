@@ -58,6 +58,8 @@ class Lexer:
     def make_number(self):
         ptr_ini=self.ptr
 
+        
+
 ############################
 #RUN
 
