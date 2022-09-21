@@ -10,6 +10,24 @@ VARS={
     "CONSTANT":{},
     "PRIVATE":{}
 }
+TYPES={
+    "string":"STRING",
+    "int":"INT",
+    "float":"FLOAT",
+    "list":"LIST",
+    "dict":"DICT",
+    "bool":"BOOL",
+    "char":"CHAR"
+}
+
+KEYWORDS={
+    "func":"FUNCTION",
+    "global":"GLOBAL",
+    "private":"PRIVATE",
+}
+
+LETTERS="azertyuiopqsdfghjklmmwxcvbn"
+LETTERS+=LETTERS.upper()
 #######################################
 #ERROR
 
@@ -34,6 +52,13 @@ class IllegalCharError(Error):
 #TOKENS
 
 TOKENS={
+    "identifier":"IDENTIFIER",
+    "&":"AND",
+    "|":"OR",
+    "=":"VARSET",
+    "==":"EQ",
+    "^":"POW",
+    ";":"semicol",
     "+":"PLUS",
     "-":"MINUS",
     "*":"MUL",
@@ -83,6 +108,23 @@ class Lexer:
             elif self.text[self.ptr]=="/" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="/":
                     tokens.append(Token(TOKENS["//"]))
                     self.ptr+=2
+            elif self.text[self.ptr]=="=" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
+                    tokens.append(Token(TOKENS["=="]))
+                    self.ptr+=2
+            elif self.text[self.ptr] in LETTERS:
+                a=""
+                c=0
+                while self.text[self.ptr+c] in LETTERS:
+                    if self.ptr+c<len(self.text):
+                        a+=self.text[self.ptr+c]
+                        c+=1
+                if a in KEYWORDS.keys():
+                    tokens.append(Token(KEYWORDS[a]))
+                elif a in TYPES.keys():
+                    tokens.append(Token(TYPES[a]))
+                else:
+                    tokens.append(Token(TOKENS["identifier"],a))
+                self.ptr+=c
             elif self.text[self.ptr]in TOKENS.keys():
                 tokens.append(Token(TOKENS[self.text[self.ptr]]))
                 self.ptr+=1
@@ -143,6 +185,6 @@ def run(fn,text):
 
 
 
-lexer=Lexer("st","1+2+2*3.6+'au'+/'hujù%'%   //2")
+lexer=Lexer("st","int a = 3; ")
 
 print(lexer.make_tokens())
