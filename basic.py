@@ -179,12 +179,9 @@ class Lexer:
 
 def run(fn,text):
     lexer=Lexer(fn,text)
-    tokens,error=lexer.make_tokens()
-    
+    tokens=lexer.make_tokens()
+    print(tokens)
 
 
 
-
-lexer=Lexer("st","int a = 3; ")
-
-print(lexer.make_tokens())
+run("stdio","int x=1")
