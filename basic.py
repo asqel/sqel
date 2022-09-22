@@ -223,8 +223,9 @@ class Parser:
             self.ptr+=1
         self.ptr+=1
         
-        
-        
+    def evalExpr(self):
+        tok=self.getExpr()
+            
     def parse(self):
         while self.ptr<len(self.tokens):
             if self.tokens[self.ptr].type==KEYWORDS["def"] and self.ptr+1<len(self.tokens):
@@ -265,7 +266,7 @@ class Parser:
                     name=self.tokens[self.ptr+2].value
                     ty=self.tokens[self.ptr+1].type
                     self.ptr+=4
-                    val=self.getExpr()
+                    val=self.evalExpr()
                             
                             
             self.ptr+=1
