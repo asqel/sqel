@@ -1,7 +1,12 @@
-let x=3
-let x=x+3
+int x=4;
 print(x)
 
 func f(x){
     print("salut");
 }
+
+
+(private)(global(inside fuction))type name = expr
+
+
+priority
