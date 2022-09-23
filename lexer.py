@@ -8,12 +8,8 @@
 DIGITS="1234567890"
 
 
-VARS={
-    "GLOBAL":{},
-    "FUNC":{},
-    "CONSTANT":{},
-    "PRIVATE":{}
-}
+VARS={}
+FUNCVARS={}#{"function name":[[a=2],[a=3]]}plusieur liste si il ya de la recustion
 TYPES=[
     "string",
     "int",
@@ -46,10 +42,19 @@ LETTERS+=LETTERS.upper()
 
 
 
-class var:
-    def __init__(self,type_,val):
+class Var:
+    def __init__(self,name,type_,val,tag="global",other=None):
+        """
+        other is for private Var to tell to wich class and variable that  is linked
+        tag="global"|"private"|"function"|"constant"
+        """
         self.type=type_
         self.val=val
+        self.tag=tag
+        self.other=other
+    def __repr__(self):
+        return f'{self.type} | ({self.tag}/{self.other}) : {self.val}'
+
 #######################################
 #ERROR
 
@@ -114,8 +119,8 @@ class Token:
         self.value=value
     
     def __repr__(self) -> str:
-        if self.value:return  f"{self.type}:{self.value}"
-        return f"{self.type}"
+        if self.value:return  f"({self.type}:{self.value})"
+        return f"({self.type})"
 
 
 class FunctionExpr:
@@ -195,8 +200,8 @@ class Lexer:
             s+=self.text[self.ptr]
             self.ptr+=1
         if "."in s:  
-            return  Token("FLOAT",float(s))
-        return Token("INT",int(s))
+            return  Token("float",float(s))
+        return Token("int",int(s))
     def make_string(self):
         s=""
         if self.text[self.ptr]=="'":

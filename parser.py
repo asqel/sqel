@@ -1,4 +1,5 @@
 from  lexer import *
+import sys
 
 class Parser:
     def __init__(self,tokens):
@@ -15,7 +16,7 @@ class Parser:
         self.ptr+=1
         return tok_expr
     
-    def findBestOp(t):
+    def findBestOp(self,t):
         for i in range(len(t)):#scan for pow(^)
             if t[i].type==TOKENS["^"]:
                 return i
@@ -36,7 +37,9 @@ class Parser:
         if op_idx!=None:
             op=t[op_idx] 
         elif len(t)>1:
-            return Error("error in expression")
+            return Error("error in expression",None,None,None)
+        if len(t)==0:
+            return Error("error in expression",None,None,None)
         a:Token
         b:Token
         a=None
@@ -45,7 +48,7 @@ class Parser:
             a=t[op_idx-1]
         if op_idx+1<len(t):
             b=t[op_idx+1]
-        PluMinOp=[TOKENS["+"],TOKENS["'-"]]
+        PluMinOp=[TOKENS["+"],TOKENS["-"]]
         if op.type in PluMinOp:
             if a.type in PluMinOp and b.type in PluMinOp:#(+/-)(+/-)(+/-)
                 c=0
@@ -73,10 +76,38 @@ class Parser:
                 else:res=Token(TOKENS["-"])
                 t.pop(op_idx)
                 t[op_idx-1]=res
-            elif a.type not in PluMinOp and b.type not in PluMinOp:#?(+/-)?
+            elif a.type not in PluMinOp+PARENTHESES and b.type not in PluMinOp+PARENTHESES:#?(+/-)?
                 t.pop(op_idx+1)
                 t.pop(op_idx)
-                t[op_idx-1]=a.value+ b.value if op.type==TOKENS["+"] else a.value-b.value
+                if op.type==TOKENS["+"]:
+                    t[op_idx-1]=Token(str(type(a.value+b.value).__name__),a.value+b.value)
+                elif op.type==TOKENS["-"]:
+                    t[op_idx-1]=Token(str(type(a.value+b.value).__name__),a.value-b.value)
+            elif a.type in PARENTHESES:
+                rpar_idx=op_idx-1
+                lpar_idx=None
+                c=-2
+                count=1
+                while op_idx-c>=0:
+                    if t[op_idx-c].type==TOKENS[")"]:count+=1
+                    elif t[op_idx-c].type==TOKENS["("] and count>0:count-=1
+                    elif t[op_idx-c].type==TOKENS["("] and count==0:lpar_idx=op_idx-c
+                    c-=1
+                tt=[]
+                for i in range(lpar_idx+1,rpar_idx):
+                    tt.append(t[i])
+                e=self.EvalExpr(tt)
+                to=[]
+                notset=True
+                for i in range(len(t)):
+                    if lpar_idx<=i<=rpar_idx and notset:
+                        to.append(e)
+                        notset=False
+                    else:to.append(t[i])
+                t=to
+
+
+
                         
         if len(t)>1:
             return self.EvalExpr(t)
@@ -90,8 +121,9 @@ class Parser:
                     name=self.tokens[self.ptr+1]
                     type_=self.tokens[self.ptr]
                     self.ptr+=3
-                    val=self.evalExpr(self.getExpr())
-                    VARS["GLOBAL"][name]=[type_,val]
+                    val=self.EvalExpr(self.getExpr())[0]
+                    if isinstance(val,Error):return val
+                    VARS[name]=Var(name,type_,val.value)
                     
      
 ############################
@@ -102,11 +134,8 @@ def run(fn,text):
     tokens=lexer.make_tokens()
     parser=Parser(tokens)
     parser.parse()
-
+    print(VARS)
 
 run("stdio","""
-    
-    string b=7+(3+5)/4%13//7.08;
+    int b=3+(6+3)+3;
     """)
-
-
