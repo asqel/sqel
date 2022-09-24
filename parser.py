@@ -17,6 +17,7 @@ class Parser:
         return tok_expr
     
     def findBestOp(self,t):
+        print(t)
         for i in range(len(t)):#scan for pow(^)
             if t[i].type==TOKENS["^"]:
                 return i
@@ -40,6 +41,8 @@ class Parser:
             return Error("error in expression",None,None,None)
         if len(t)==0:
             return Error("error in expression",None,None,None)
+        if len(t)==1:
+            return t[0]
         a:Token
         b:Token
         a=None
@@ -86,25 +89,57 @@ class Parser:
             elif a.type in PARENTHESES:
                 rpar_idx=op_idx-1
                 lpar_idx=None
-                c=-2
-                count=1
+                c=2
+                count=0
                 while op_idx-c>=0:
                     if t[op_idx-c].type==TOKENS[")"]:count+=1
                     elif t[op_idx-c].type==TOKENS["("] and count>0:count-=1
-                    elif t[op_idx-c].type==TOKENS["("] and count==0:lpar_idx=op_idx-c
-                    c-=1
+                    elif t[op_idx-c].type==TOKENS["("] and count==0:lpar_idx=op_idx-c;break
+                    c+=1
                 tt=[]
                 for i in range(lpar_idx+1,rpar_idx):
                     tt.append(t[i])
                 e=self.EvalExpr(tt)
+                print(e)
+                if type(e)==list and len(e)==1:
+                    e=e[0]
                 to=[]
-                notset=True
+                count=0
                 for i in range(len(t)):
-                    if lpar_idx<=i<=rpar_idx and notset:
-                        to.append(e)
-                        notset=False
-                    else:to.append(t[i])
+                    if i!=rpar_idx and i!=lpar_idx:
+                        if lpar_idx<i and i<rpar_idx and count==0:
+                            to.append(e)
+                            count+=1
+                        else:
+                            to.append(t[i])
                 t=to
+            elif b.type in PARENTHESES:
+                rpar_idx=None
+                lpar_idx=op_idx+1
+                count=0
+                c=2
+                while op_idx+c<len(t):
+                    if t[op_idx+c].type ==TOKENS["("]:count+=1
+                    elif t[op_idx+c].type ==TOKENS[")"] and count>0:count-=1
+                    elif t[op_idx+c].type ==TOKENS[")"] and count==0:rpar_idx=op_idx+c;break
+                    c+=1
+                tt=[]
+                for i in range(lpar_idx+1,rpar_idx):
+                    tt.append(t[i])
+                e=self.EvalExpr(tt)
+                if type(e)==list and len(e)==1:
+                    e=e[0]
+                to=[]
+                count=0
+                for i in range(len(t)):
+                    if i!=rpar_idx and i!=lpar_idx:
+                        if lpar_idx<i and i<rpar_idx and count==0:
+                            to.append(e)
+                            count+=1
+                        else:
+                            to.append(t[i])
+                t=to
+                   
 
 
 
@@ -137,5 +172,5 @@ def run(fn,text):
     print(VARS)
 
 run("stdio","""
-    int b=3+(6+3)+3;
+    int b=3+(6+3);
     """)
