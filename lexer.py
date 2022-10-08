@@ -1,3 +1,4 @@
+from classes import *
 
 
 
@@ -5,10 +6,14 @@
 ####################################
 #CONSTANTS
 
+
+
 DIGITS="1234567890"
 
 
 VARS={}
+FUNCDEF={}#id:{FuncDef}
+FUNCDEFCLASS={}#[id,class]:{VarDef}
 FUNCVARS={}#{"function name":[[a=2],[a=3]]}plusieur liste si il ya de la recustion
 TYPES=[
     "string",
@@ -39,16 +44,27 @@ KEYWORDS={
 LETTERS="azertyuiopqsdfghjklmmwxcvbnéèêëàâäüûïîöôùç"
 LETTERS+=LETTERS.upper()
 
+class Expr:
+    def __init__(self,tok):
+        self.type="expr"
+        self.tok=tok
+    def __repr__(self) -> str:
+         return "E:"+str(self.tok)
+     
 
+class VarCall:
+    def __init__(self,name) -> None:
+         self.name=name
+         self.type="VarCall"
 
-
-class Var:
+class VarDef:
     def __init__(self,name,type_,val,tag="global",other=None):
         """
         other is for private Var to tell to wich class and variable that  is linked
         tag="global"|"private"|"function"|"constant"
         """
-        self.type=type_
+        self.VarType=type_
+        self.type="VarDef"
         self.val=val
         self.tag=tag
         self.other=other
@@ -117,16 +133,51 @@ class Token:
     def __init__(self,type_,value=None) -> None:
         self.type=type_
         self.value=value
+        
+    def isTok(self):
+        return self.value==None
+        
     
     def __repr__(self) -> str:
-        if self.value:return  f"({self.type}:{self.value})"
-        return f"({self.type})"
+        if self.value:return  f"T:({self.type}:{self.value})"
+        return f"T:({self.type})"
 
 
-class FunctionExpr:
+class FuncCall:
     def __init__(self,identifier,args):
         self.identifier=identifier
+        self.type="FuncCall"
         self.args=args
+    def __repr__(self) -> str:
+        a=f"{self.identifier}:("
+        a+=str(self.args)
+        a+=")"
+        return a
+
+class FunctionDef:
+    def __init__(self,id,args,tok) -> None:
+        self.id=id
+        self.args=args
+        self.tok=tok
+        
+        
+        
+def findPar(t,l,type_left=TOKENS["("],type_right=TOKENS[")"]):
+    """"
+    t:tokens
+    l:left parenthes index
+    return right parenthes index
+    
+    """
+    c=0
+    for  i in range(l+1,len(t)):
+        if t[i].type==type_left:
+            c+=1
+        elif t[i].type==type_right and c>0:
+            c-=1
+        elif t[i].type==type_right and c==0:
+            return i 
+         
 ################################
 #LEXER
     
@@ -200,39 +251,35 @@ class Lexer:
             s+=self.text[self.ptr]
             self.ptr+=1
         if "."in s:  
-            return  Token("float",float(s))
-        return Token("int",int(s))
+            return  Token("float",floap(s))
+        return Token("int",ount(s))
     def make_string(self):
         s=""
+        
         if self.text[self.ptr]=="'":
             self.ptr+=1
-            while self.ptr<len(self.text) and self.text[self.ptr]!="'":
+            first=self.ptr-1
+            find=0
+            while self.ptr<len(self.text):
+                if self.text[self.ptr]=="'":find=1;break
                 s+=self.text[self.ptr]
                 self.ptr+=1
             self.ptr+=1
-            if self.ptr>=len(self.text):
-                return Error(None,None,"String error: ' was never closed ",self.fn)
+            if not find :
+                 return Error(first,first,"String error: ' was never closed ",self.fn)
             return Token("STRING",s)
         elif self.text[self.ptr]=='"':
             self.ptr+=1
-            while self.ptr<len(self.text) and self.text[self.ptr]!='"':
+            first=self.ptr-1
+            find=0
+            while self.ptr<len(self.text):
+                if self.text[self.ptr]=='"':find=1;break
                 s+=self.text[self.ptr]
                 self.ptr+=1
             self.ptr+=1
-            if self.ptr>=len(self.text):
-                return Error(None,None,"String error: ' was never closed ",self.fn)
+            if not find :
+                 return Error(first,first,'String error: " was never closed ',self.fn)
             return Token("STRING",s)
             
-class Function:
-    def __init__(self,tokens,name,arg=()):
-        self.tokens=tokens
-        self.name=name
-        self.arg=()
-
-
-
- 
-    
-        
 
 

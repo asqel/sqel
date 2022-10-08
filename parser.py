@@ -1,23 +1,56 @@
+import os
 from  lexer import *
 import sys
+from funcs import *
+from op import *
+from  classes import *
+
+def findPar(t,left_idx):
+    c=0
+    for i in range(left_idx+1,len(t)):
+        if t[i].type==TOKENS["("]:c+=1
+        elif t[i].type==TOKENS[")"] and c>0:c-=1
+        elif t[i].type==TOKENS[")"] and c==0:return i
 
 class Parser:
-    def __init__(self,tokens):
+    def __init__(self,tokens,fn):
         self.tokens=tokens
         self.ptr=0
+        self.fn=fn
         
-    def getExpr(self):
+    def makeExpr(self,t):
         tok_expr=[]
-        while self.ptr<len(self.tokens):
-            if self.tokens[self.ptr].type==TOKENS[";"]:
-                break
-            tok_expr.append(self.tokens[self.ptr])
-            self.ptr+=1
-        self.ptr+=1
+        p=0
+        while p<len(t):
+            if t[p].type==TOKENS["identifier"]:
+                name=t[p].value
+                if p+1<len(t) and t[p+1].type==TOKENS["("]:
+                    left=p+1
+                    right=findPar(t,left)
+                    if right==None:return Error(left,left,"'(' was never closed",self.fn)
+                    a=[]
+                    for i in range(left+1,right):
+                        a.append(t[i])
+                    tok_expr.append(FuncCall(name,self.makeExpr(a)))
+                    p=right+1
+                else:
+                    tok_expr.append(t[p])
+                    p+=1
+            elif t[p].type==TOKENS["("]:
+                left=p
+                right=findPar(t,left)      
+                if right==None:return Error(left,left,"'(' was never closed",self.fn)
+                a=[]
+                for i in range(left+1,right):
+                        a.append(t[i])
+                tok_expr.append(Expr(self.makeExpr(a)))
+                p=right+1
+            else:
+                tok_expr.append(t[p])
+                p+=1   
         return tok_expr
     
     def findBestOp(self,t):
-        print(t)
         for i in range(len(t)):#scan for pow(^)
             if t[i].type==TOKENS["^"]:
                 return i
@@ -32,134 +65,124 @@ class Parser:
                 return i
         return None
     
-    def EvalExpr(self,t:list):
-        op:Token
-        op_idx=self.findBestOp(t)
-        if op_idx!=None:
-            op=t[op_idx] 
-        elif len(t)>1:
-            return Error("error in expression",None,None,None)
-        if len(t)==0:
-            return Error("error in expression",None,None,None)
-        if len(t)==1:
-            return t[0]
-        a:Token
-        b:Token
-        a=None
-        b=None
-        if 0<=op_idx-1:
-            a=t[op_idx-1]
-        if op_idx+1<len(t):
-            b=t[op_idx+1]
-        PluMinOp=[TOKENS["+"],TOKENS["-"]]
-        if op.type in PluMinOp:
-            if a.type in PluMinOp and b.type in PluMinOp:#(+/-)(+/-)(+/-)
-                c=0
-                if a.type==TOKENS["-"]:c+=1
-                if b.type==TOKENS["-"]:c+=1
-                if op.type==TOKENS["-"]:c+=1
-                if c%2==0:res=Token(TOKENS["+"])
-                else:res=Token(TOKENS["-"])
-                t.pop(op_idx+1)
-                t.pop(op_idx)
-                t[op_idx-1]=res
-            elif a.type not in PluMinOp and b.type in PluMinOp:#?(+/-)(+/-)
-                c=0
-                if b.type==TOKENS["-"]:c+=1
-                if op.type==TOKENS["-"]:c+=1
-                if c%2==0:res=Token(TOKENS["+"])
-                else:res=Token(TOKENS["-"])
-                t.pop(op_idx+1)
-                t[op_idx]=res
-            elif a.type  in PluMinOp and b.type not in PluMinOp:#(+/-)(+/-)?
-                c=0
-                if a.type==TOKENS["-"]:c+=1
-                if op.type==TOKENS["-"]:c+=1
-                if c%2==0:res=Token(TOKENS["+"])
-                else:res=Token(TOKENS["-"])
-                t.pop(op_idx)
-                t[op_idx-1]=res
-            elif a.type not in PluMinOp+PARENTHESES and b.type not in PluMinOp+PARENTHESES:#?(+/-)?
-                t.pop(op_idx+1)
-                t.pop(op_idx)
-                if op.type==TOKENS["+"]:
-                    t[op_idx-1]=Token(str(type(a.value+b.value).__name__),a.value+b.value)
-                elif op.type==TOKENS["-"]:
-                    t[op_idx-1]=Token(str(type(a.value+b.value).__name__),a.value-b.value)
-            elif a.type in PARENTHESES:
-                rpar_idx=op_idx-1
-                lpar_idx=None
-                c=2
-                count=0
-                while op_idx-c>=0:
-                    if t[op_idx-c].type==TOKENS[")"]:count+=1
-                    elif t[op_idx-c].type==TOKENS["("] and count>0:count-=1
-                    elif t[op_idx-c].type==TOKENS["("] and count==0:lpar_idx=op_idx-c;break
-                    c+=1
-                tt=[]
-                for i in range(lpar_idx+1,rpar_idx):
-                    tt.append(t[i])
-                e=self.EvalExpr(tt)
-                print(e)
-                if type(e)==list and len(e)==1:
-                    e=e[0]
-                to=[]
-                count=0
-                for i in range(len(t)):
-                    if i!=rpar_idx and i!=lpar_idx:
-                        if lpar_idx<i and i<rpar_idx and count==0:
-                            to.append(e)
-                            count+=1
-                        else:
-                            to.append(t[i])
-                t=to
-            elif b.type in PARENTHESES:
-                rpar_idx=None
-                lpar_idx=op_idx+1
-                count=0
-                c=2
-                while op_idx+c<len(t):
-                    if t[op_idx+c].type ==TOKENS["("]:count+=1
-                    elif t[op_idx+c].type ==TOKENS[")"] and count>0:count-=1
-                    elif t[op_idx+c].type ==TOKENS[")"] and count==0:rpar_idx=op_idx+c;break
-                    c+=1
-                tt=[]
-                for i in range(lpar_idx+1,rpar_idx):
-                    tt.append(t[i])
-                e=self.EvalExpr(tt)
-                if type(e)==list and len(e)==1:
-                    e=e[0]
-                to=[]
-                count=0
-                for i in range(len(t)):
-                    if i!=rpar_idx and i!=lpar_idx:
-                        if lpar_idx<i and i<rpar_idx and count==0:
-                            to.append(e)
-                            count+=1
-                        else:
-                            to.append(t[i])
-                t=to
-                   
-
-
-
-                        
-        if len(t)>1:
-            return self.EvalExpr(t)
-        return t
-            
+    def evalExpr(self,expr:Expr):
+        for i in range(len(expr.tok)):
+            if isinstance(expr.tok[i],Expr):
+                expr.tok[i]=self.evalExpr(expr.tok[i])
+        
+        op=self.findBestOp(expr.tok)
+        if op ==None:
+            if len(expr.tok)==1:
+                return expr.tok[0]
+            else:
+                return Error(None,None,"error in expression",self.fn)
+        elif expr.tok[op].type==TOKENS["^"]:
+            if not(op-1>=0 and op+1<len(expr.tok)):
+                return Error(op,op,"Error in expression : missing parameter for ^ (pow) operator ",self.fn)
+            a=expr.tok[op-1]
+            b=expr.tok[op+1]
+            c=pow_op(a,b)
+            expr.tok.pop(op+1)
+            expr.tok.pop(op)
+            expr.tok[op-1]=c
+        elif expr.tok[op].type==TOKENS["*"]:
+            if not(op-1>=0 and op+1<len(expr.tok)):
+                return Error(op,op,"Error in expression : missing parameter for * (mul) operator ",self.fn)
+            a=expr.tok[op-1]
+            b=expr.tok[op+1]
+            c=mul_op(a,b)
+            expr.tok.pop(op+1)
+            expr.tok.pop(op)
+            expr.tok[op-1]=c
+        elif expr.tok[op].type==TOKENS["/"]:
+            if not(op-1>=0 and op+1<len(expr.tok)):
+                return Error(op,op,"Error in expression : missing parameter for / (div) operator ",self.fn)
+            a=expr.tok[op-1]
+            b=expr.tok[op+1]
+            c=div_op(a,b)
+            expr.tok.pop(op+1)
+            expr.tok.pop(op)
+            expr.tok[op-1]=c
+        elif expr.tok[op].type==TOKENS["%"]:
+            if not(op-1>=0 and op+1<len(expr.tok)):
+                return Error(op,op,"Error in expression : missing parameter for / (div) operator ",self.fn)
+            a=expr.tok[op-1]
+            b=expr.tok[op+1]
+            c=mod_op(a,b)
+            expr.tok.pop(op+1)
+            expr.tok.pop(op)
+            expr.tok[op-1]=c
+        elif expr.tok[op].type==TOKENS["//"]:
+            if not(op-1>=0 and op+1<len(expr.tok)):
+                return Error(op,op,"Error in expression : missing parameter for / (div) operator ",self.fn)
+            a=expr.tok[op-1]
+            b=expr.tok[op+1]
+            c=euclidiv_op(a,b)
+            expr.tok.pop(op+1)
+            expr.tok.pop(op)
+            expr.tok[op-1]=c
+        elif expr.tok[op].type==TOKENS["+"]:
+            a=None
+            b=None
+            if op+1<len(expr.tok):
+                b=expr.tok[op+1]
+            if op-1>=0:
+                a=expr.tok[op-1]
+            if b==None:return Error(None,None,"error in expression",self.fn)
+            c=add_op(a,b,expr.tok,op)
+        elif expr.tok[op].type==TOKENS["-"]:
+            a=None
+            b=None
+            if op+1<len(expr.tok):
+                b=expr.tok[op+1]
+            if op-1>=0:
+                a=expr.tok[op-1]
+            if b==None:return Error(None,None,"error in expression",self.fn)
+            c=min_op(a,b,expr.tok,op)
+        return self.evalExpr(expr)
+        
+                    
+                
+                
         
     def parse(self):
+        global VARS
         while self.ptr<len(self.tokens):
-            if self.ptr+3<len(self.tokens):#Type Identifer Eq Expr
-                if self.tokens[self.ptr].type in TYPES and self.tokens[self.ptr+1].type==TOKENS["identifier"] and self.tokens[self.ptr+2].type==TOKENS["="]:
-                    name=self.tokens[self.ptr+1]
-                    type_=self.tokens[self.ptr]
-                    self.ptr+=3
-                    val=self.EvalExpr(self.getExpr())[0]
-                    if isinstance(val,Error):return val
-                    VARS[name]=Var(name,type_,val.value)
-                    
+            if self.tokens[self.ptr].type in TYPES:
+                if self.ptr+3<len(self.tokens):#Type Identifer Eq Expr
+                    if self.tokens[self.ptr].type in TYPES and self.tokens[self.ptr+1].type==TOKENS["identifier"] and self.tokens[self.ptr+2].type==TOKENS["="]:
+                        name=self.tokens[self.ptr+1]
+                        name_idx=self.ptr+1
+                        type_=self.tokens[self.ptr]
+                        self.ptr+=3
+                        e=[]
+                        semi=None
+                        for i in range(name_idx+2,len(self.tokens)):
+                            if self.tokens[i].type==TOKENS[";"]:semi=i;break
+                            e.append(self.tokens[i])
+                        if semi==None:
+                            return Error(name_idx,None,"missing ';' ",self.fn)
+                        val=self.evalExpr(Expr(self.makeExpr(e)))
+                        if isinstance(val,Error):return val
+                        VARS[name.value]={"name":name,"type":type_,"value":val}
+                        self.ptr=semi+1
+            elif self.tokens[self.ptr].type==TOKENS["identifier"]:
+                name=self.tokens[self.ptr]
+                if self.ptr+2<len(self.tokens):
+                    l=self.ptr+1
+                    r=findPar(self.tokens,l)
+                    if r==None:
+                        return Error(l,l,"'(' was never closed",self.fn)
+                    e=[]
+                    for i in range(l+1,r):
+                        e.append(self.tokens[i])
+                    e=self.makeExpr(e)
+                    val=self.evalExpr(Expr(e))
+                    funcs["print"]["key"](val )
+                    self.ptr=r+1
+
+            else:
+                self.ptr+=1       
      
 ############################
 #RUN
@@ -167,10 +190,10 @@ class Parser:
 def run(fn,text):
     lexer=Lexer(fn,text)
     tokens=lexer.make_tokens()
-    parser=Parser(tokens)
-    parser.parse()
-    print(VARS)
-
+    parser=Parser(tokens,fn)
+    a=parser.parse()
 run("stdio","""
-    int b=3+(6+3);
+    print(3)
+    string a ="salut";
+    print(a)
     """)

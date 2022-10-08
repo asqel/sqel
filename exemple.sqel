@@ -1,12 +1,25 @@
 int x=4;
-print(x)
+print(x);
+
+
 
 func f(x){
     print("salut");
-}
+};
+
+def a(x){
+    return x^3;
+};
+
+function k(x){
+    return x*3;
+};
+
+fun  h(x){
+    return x^0.5;
+};
 
 
-(private)(global(inside fuction))type name = expr
 
 
-priority
+print(h(2));
