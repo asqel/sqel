@@ -10,6 +10,7 @@ class Parser:
         self.tokens=tokens
         self.ptr=0
         self.fn=fn
+        self.abs_tokens=tokens.copy()
         
     def makeExpr(self,t):
         tok_expr=[]
@@ -20,7 +21,9 @@ class Parser:
                 if p+1<len(t) and t[p+1].type==TOKENS["("]:
                     left=p+1
                     right=findPar(t,left)
-                    if right==None:return Error(t[left].line_start,t[left].line_end,"'(' was never closed",self.fn)
+                    if right==None:
+                        print(Error(t[left].line_start,t[left].line_end,"'(' was never closed",self.fn))
+                        exit()
                     a=[]
                     for i in range(left+1,right):
                         a.append(t[i])
@@ -32,7 +35,9 @@ class Parser:
             elif t[p].type==TOKENS["("]:
                 left=p
                 right=findPar(t,left)      
-                if right==None:return Error(t[left].line_start,t[left].line_end,"'(' was never closed",self.fn)
+                if right==None:
+                    print(Error(t[left].line_start,t[left].line_end,"'(' was never closed",self.fn))
+                    exit()
                 a=[]
                 for i in range(left+1,right):
                         a.append(t[i])
@@ -78,12 +83,14 @@ class Parser:
             if len(expr.tok)==1:
                 return expr.tok[0]
             elif len(expr.tok)>1:
-                return Error(expr.tok[0].line_start,expr.tok[0].line_end,"error in expression",self.fn)
+                print(Error(expr.tok[0].line_start,expr.tok[0].line_end,"error in expression",self.fn))
+                exit()
             else:
                 return None
         elif expr.tok[op].type==TOKENS["^"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for ^ (pow) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for ^ (pow) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=pow_op(a,b)
@@ -92,7 +99,8 @@ class Parser:
             expr.tok[op-1]=c
         elif expr.tok[op].type==TOKENS["*"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for * (mul) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for * (mul) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=mul_op(a,b)
@@ -101,7 +109,8 @@ class Parser:
             expr.tok[op-1]=c
         elif expr.tok[op].type==TOKENS["/"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=div_op(a,b)
@@ -110,7 +119,8 @@ class Parser:
             expr.tok[op-1]=c
         elif expr.tok[op].type==TOKENS["%"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for % (modulo) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=mod_op(a,b)
@@ -119,7 +129,8 @@ class Parser:
             expr.tok[op-1]=c
         elif expr.tok[op].type==TOKENS["//"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for // (euclidiv) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=euclidiv_op(a,b)
@@ -128,7 +139,8 @@ class Parser:
             expr.tok[op-1]=c
         elif expr.tok[op].type==TOKENS[">>"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for >> (rshift) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             if a.type==TOKENS["identifier"] and a.value in VARS.keys():a=VARS[a.value]["value"]
@@ -139,7 +151,8 @@ class Parser:
             expr.tok[op-1]=c
         elif expr.tok[op].type==TOKENS["<<"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for << (lshift) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=lshift_op(a,b)
@@ -153,7 +166,9 @@ class Parser:
                 b=expr.tok[op+1]
             if op-1>=0:
                 a=expr.tok[op-1]
-            if b==None:return Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression",self.fn)
+            if b==None:
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression : missing parameter for + (add) operator",self.fn))
+                exit()
             c=add_op(a,b,expr.tok,op)
         elif expr.tok[op].type==TOKENS["-"]:
             a=None
@@ -162,11 +177,14 @@ class Parser:
                 b=expr.tok[op+1]
             if op-1>=0:
                 a=expr.tok[op-1]
-            if b==None:return Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression",self.fn)
+            if b==None:
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression : missing parameter for - (minus) operator",self.fn))
+                exit()
             c=min_op(a,b,expr.tok,op)
         elif expr.tok[op].type==TOKENS["=="]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression : missing parameter for == (eq) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=eq_op(a,b)
@@ -175,7 +193,8 @@ class Parser:
             expr.tok[op-1]=c
         elif expr.tok[op].type==TOKENS["!="]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression : missing parameter for != (diff) operator",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=eq_op(a,b)
@@ -185,7 +204,8 @@ class Parser:
             expr.tok[op-1]=c
         elif expr.tok[op].type==TOKENS[">"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression : missing parameter for > (gt) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=gt_op(a,b)
@@ -195,18 +215,19 @@ class Parser:
             
         elif expr.tok[op].type==TOKENS["<"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression : missing parameter for < (lt) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
-            c=gt_op(a,b)
-            c.value=not c.value
+            c=gt_op(b,a)
             expr.tok.pop(op+1)
             expr.tok.pop(op)
             expr.tok[op-1]=c
             
         elif expr.tok[op].type==TOKENS["<="]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression : missing parameter for <= (le) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=eq_op(a,b)
@@ -219,7 +240,8 @@ class Parser:
         
         elif expr.tok[op].type==TOKENS[">="]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression : missing parameter for >= (ge operator",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=eq_op(a,b)
@@ -232,7 +254,8 @@ class Parser:
         
         elif expr.tok[op].type==TOKENS["&"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression : missing parameter for & (and) operator ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=and_op(a,b)
@@ -242,7 +265,8 @@ class Parser:
         
         elif expr.tok[op].type==TOKENS["|"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
-                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+                print(Error(expr.tok[op].line_start,expr.tok[op].line_end,"error in expression : missing parameter for | (or) operatorr ",self.fn))
+                exit()
             a=expr.tok[op-1]
             b=expr.tok[op+1]
             c=or_op(a,b)
@@ -259,16 +283,21 @@ class Parser:
                 start=self.ptr
                 l_par=self.ptr+1
                 r_par=findPar(self.tokens,l_par)
-                if r_par==None:return Error(self.tokens[start].line_start,self.tokens[start].line_end,"'(' was never closed",self.fn)
+                if r_par==None:
+                    print(Error(self.tokens[start].line_start,self.tokens[start].line_end,"'(' was never closed",self.fn))
+                    exit()
                 e=[]
                 for i in range(l_par+1,r_par):
                     e.append(self.tokens[i])
                 e=Expr(self.makeExpr(e))
                 if not( r_par <len(self.tokens) and self.tokens[r_par+1].type==TOKENS["{"]):
-                    return Error(self.tokens[l_par].line_start,self.tokens[l_par].line_end,"error in while")
+                    print(Error(self.tokens[l_par].line_start,self.tokens[l_par].line_end,"error in while"))
+                    exit()
                 l_brac=r_par+1
                 r_brac=findPar(self.tokens,l_brac,TOKENS["{"],TOKENS["}"])
-                if r_brac==None:return Error(self.tokens[l_brac].line_start,self.tokens[l_brac].line_end,"'{' was never closed",self.fn)
+                if r_brac==None:
+                    print(Error(self.tokens[l_brac].line_start,self.tokens[l_brac].line_end,"'{' was never closed",self.fn))
+                    exit()
                 t=[]
                 for i in range(l_brac+1,r_brac):
                     t.append(self.tokens[i])
@@ -308,36 +337,63 @@ class Parser:
                             if self.tokens[i].type==TOKENS[";"]:semi=i;break
                             e.append(self.tokens[i])
                         if semi==None:
-                            return Error(self.tokens[name_idx].line_start,self.tokens[name_idx].line_end,"missing ';' ",self.fn)
-                        val=self.evalExpr(Expr(self.makeExpr(e)))#le probleme il est la 
-                        if isinstance(val,Error):return val
+                            print(Error(self.tokens[name_idx].line_start,self.tokens[name_idx].line_end,"missing ';' ",self.fn))
+                            exit()
+                        val=self.evalExpr(Expr(self.makeExpr(e).copy()))#le probleme il est la 
+                        if isinstance(val,Error):
+                            print(val)
+                            exit()
                         if val.value.__class__.__name__!=type_.type:
-                            return Error(name.line_start,name.line_end,f"missmatch type '{type_.type}' was expected but '{val.value.__class__.__name__}' was returned",self.fn)
+                            print(Error(name.line_start,name.line_end,f"missmatch type '{type_.type}' was expected but '{val.value.__class__.__name__}' was returned",self.fn))
+                            exit()
                         VARS[name.value]={"name":name,"type":type_.type,"value":val}
                         self.ptr=semi+1
                         
             elif type(self.tokens[self.ptr])==FuncCall:
                 a=self.ptr
                 if self.tokens[self.ptr].identifier in funcs.keys():
-                    funcs[self.tokens[self.ptr].identifier]["key"](self.evalExpr(Expr(self.tokens[self.ptr].args)) if len(self.tokens[self.ptr].args)!=0 else None )
+                    c=self.evalExpr(Expr(self.tokens[self.ptr].args.copy()))
+                    funcs[self.tokens[self.ptr].identifier]["key"]( c if len(self.tokens[self.ptr].args)!=0 else None )
                     self.ptr=a+1
             elif self.tokens[self.ptr].type==TOKENS["identifier"]:
                 name=self.tokens[self.ptr]
+                name_idx=self.ptr
                 if self.ptr+2<len(self.tokens):
-                    if name.value not in funcs.keys():
-                        return Error(self.tokens[self.ptr].line_start,self.tokens[self.ptr].line_end,f"identifier '{name.value}' not defined",self.fn)
-                    l=self.ptr+1
-                    r=findPar(self.tokens,l)
-                    if r==None:
-                         return Error(self.tokens[l].line_start,self.tokens[l].line_end,"'(' was never closed",self.fn)
-                    e=[]
-                    for i in range(l+1,r):
-                        e.append(self.tokens[i])
-                    e=self.makeExpr(e)
-                    val=self.evalExpr(Expr(e))
-                    funcs[name.value]["key"](val)
                     
-                    self.ptr=r+1
+                    if name.value in funcs.keys():
+                        l=self.ptr+1
+                        r=findPar(self.tokens,l)
+                        if r==None:
+                            print(Error(self.tokens[l].line_start,self.tokens[l].line_end,"'(' was never closed",self.fn))
+                            exit()
+                        e=[]
+                        for i in range(l+1,r):
+                            e.append(self.tokens[i])
+                        e=self.makeExpr(e)
+                        val=self.evalExpr(Expr(e.copy()))
+                        funcs[name.value]["key"](val)
+                        self.ptr=r+1
+                    elif name.value in VARS.keys():
+                        e=[]
+                        semi=None
+                        for i in range(name_idx+2,len(self.tokens)):
+                            if self.tokens[i].type==TOKENS[";"]:semi=i;break
+                            e.append(self.tokens[i])
+                        if semi==None:
+                            print(Error(self.tokens[name_idx].line_start,self.tokens[name_idx].line_end,"missing ';' ",self.fn))
+                            exit()
+                        val=self.evalExpr(Expr(self.makeExpr(e).copy()))#le probleme il est la 
+                        if isinstance(val,Error):return val
+                        if val.value.__class__.__name__!=VARS[name.value]["value"].value.__class__.__name__:
+                            print(Error(name.line_start,name.line_end,f"missmatch type '{type_.type}' was expected but '{val.value.__class__.__name__}' was returned",self.fn))
+                            exit()
+                        VARS[name.value]["value"]=val
+                        self.ptr=semi+1
+                    else:
+                        print(Error(name.line_start,name.line_end,f"identifier '{name.value}' not defined",self.fn))
+                        exit()
+                        
+                    
             elif type(self.tokens[self.ptr])==While:
                 cond=self.tokens[self.ptr].condition.tok.copy()
                 t=self.tokens[self.ptr].tok.copy()
@@ -353,6 +409,7 @@ class Parser:
 ############################
 #RUN
 
+
 def run(fn,text):
     lexer=Lexer(fn,text)
     tokens=lexer.make_tokens()
@@ -365,8 +422,9 @@ def run(fn,text):
         print(a)
         return 1
 run("stdio","""
-    ount i=3;
-    while(i>0){
-        print(i*2);
-    }
+    ount i=3+4;
+    i=i+3;
+    print(i);print("\n");
+    print(i>10)
+    
 """)
