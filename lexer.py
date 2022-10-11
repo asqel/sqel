@@ -1,7 +1,21 @@
+from cgitb import text
 from classes import *
 
 
-
+class While:
+    def __init__(self,start,end,condition,tokens) -> None:
+         self.type="While"
+         self.start=start
+         self.end=end
+         self.tok=tokens
+         self.condition=condition
+         
+    def __repr__(self) -> str:
+         return f"""While:({str(self.condition)}){
+             {str(self.tok)}
+         }
+     
+     """
 
 ####################################
 #CONSTANTS
@@ -18,6 +32,9 @@ FUNCVARS={}#{"function name":[[a=2],[a=3]]}plusieur liste si il ya de la recusti
 TYPES=[
     "string",
     "int",
+    "ount",
+    "floap",
+    "boolean",
     "float",
     "list",
     "dict",
@@ -41,7 +58,7 @@ KEYWORDS={
     "while":"WHILE"
 }
 
-LETTERS="azertyuiopqsdfghjklmmwxcvbnéèêëàâäüûïîöôùç"
+LETTERS="azertyuiopqsdfghjklmmwxcvbnéèêëàâäüûïîöôùç_"
 LETTERS+=LETTERS.upper()
 
 class Expr:
@@ -50,6 +67,7 @@ class Expr:
         self.tok=tok
     def __repr__(self) -> str:
          return "E:"+str(self.tok)
+
      
 
 class VarCall:
@@ -75,17 +93,7 @@ class VarDef:
 #ERROR
 
 
-class Error:
-    def __init__(self,pos_start,pos_end,error_name,details):
-        self.pos_start=pos_start
-        self.pos_end=pos_end
-        self.error_name=error_name
-        self.details=details
-        
-    def __repr__(self):
-        result=f'{self.error_name}, file:{self.details}'
-        result+=f", from {self.pos_start} to {self.pos_end}"
-        return result
+
     
 class IllegalCharError(Error):
     def __init__(self,pos_start,pos_end,details):
@@ -113,6 +121,8 @@ TOKENS={
     "==":"EQ",
     "^":"POW",
     ";":"SEMICOL",
+    ">>":"rshift",
+    "<<":"lshift",
     "+":"PLUS",
     "-":"MINUS",
     "*":"MUL",
@@ -130,9 +140,13 @@ OPS=["PLUS","MINUS","DIV","MUL","EUCLDIVE","MOD","POW"]
 PARENTHESES=[ "LPAREN","RPAREN","LBRAC","RBRAC","LACCO","RACCO"]
 LOGICOP=["EQ","DIFF","LEESEQ","GREATEQ","LESS","GREAT","AND","OR",]
 class Token:
-    def __init__(self,type_,value=None) -> None:
+    def __init__(self,type_,value=None,line_start=0,line_end=None) -> None:
         self.type=type_
         self.value=value
+        self.line_start=0
+        self.line_end=line_end
+        if self.line_end==None:
+            self.line_end=self.line_start
         
     def isTok(self):
         return self.value==None
@@ -177,9 +191,19 @@ def findPar(t,l,type_left=TOKENS["("],type_right=TOKENS[")"]):
             c-=1
         elif t[i].type==type_right and c==0:
             return i 
+        
+    
          
+         
+def getLineOfIdx(t,idx):
+    a=1
+    for i in range(0,len(t)):
+        if t[i]=="\n":a+=1
+        if i==idx:
+            return a
 ################################
 #LEXER
+    
     
 class Lexer:
     def __init__(self,fn,text) -> None:
@@ -189,38 +213,54 @@ class Lexer:
     def make_tokens(self)->list|Error:
         tokens=[]
         while self.ptr<len(self.text):
+            if self.text[self.ptr] in  DIGITS:
+                if self.ptr+1<len(self.text) and self.text[self.ptr+1]=="b":
+                    tokens.append(Token("boolean",boolean(bool(int(self.text[self.ptr]))),getLineOfIdx(self.text,self.ptr)))
+                    self.ptr+=2
             if self.text[self.ptr] in DIGITS:
                 a=self.make_number()
                 if isinstance(a,Error):
                     return a
                 tokens.append(a)
+            #elif self.text[self.ptr]=="$":
+            #    a=self.make_quaternion()             
+            #    if isinstance(a,Error):
+            #        return a
+            #    tokens.append(a)   
             elif self.text[self.ptr]=="'"or self.text[self.ptr]=='"':
                 a=self.make_string()
                 if isinstance(a,Error):
                     return a
                 tokens.append(a)
             elif self.text[self.ptr]=="/" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="/":
-                    tokens.append(Token(TOKENS["//"]))
+                    tokens.append(Token(TOKENS["//"],None,getLineOfIdx(self.text,self.ptr),getLineOfIdx(self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr]=="=" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
-                    tokens.append(Token(TOKENS["=="]))
+                    tokens.append(Token(TOKENS["=="],None,getLineOfIdx(self.text,self.ptr),getLineOfIdx(self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr]=="-" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
-                    tokens.append(Token(TOKENS["-="]))
+                    tokens.append(Token(TOKENS["-="],None,getLineOfIdx(self.text,self.text,self.ptr),getLineOfIdx(self.text,self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr]=="+" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
-                    tokens.append(Token(TOKENS["+="]))
+                    tokens.append(Token(TOKENS["+="],None,getLineOfIdx(self.text,self.text,self.ptr),getLineOfIdx(self.text,self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr]=="<" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
-                    tokens.append(Token(TOKENS[">="]))
+                    tokens.append(Token(TOKENS[">="],None,getLineOfIdx(self.text,self.text,self.ptr),getLineOfIdx(self.text,self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr]=="=" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
-                    tokens.append(Token(TOKENS[">="]))
+                    tokens.append(Token(TOKENS[">="],None,getLineOfIdx(self.text,self.text,self.ptr),getLineOfIdx(self.text,self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr]=="!" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
-                    tokens.append(Token(TOKENS["!="]))
+                    tokens.append(Token(TOKENS["!="],None,getLineOfIdx(self.text,self.text,self.ptr),getLineOfIdx(self.text,self.text,self.ptr+1)))
+                    self.ptr+=2
+            elif self.text[self.ptr]=="<" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="<":
+                    tokens.append(Token(TOKENS["<<"],None,getLineOfIdx(self.text,self.ptr),getLineOfIdx(self.text,self.ptr+1)))
+                    self.ptr+=2
+            elif self.text[self.ptr]==">" and self.ptr+1<len(self.text) and self.text[self.ptr+1]==">":
+                    tokens.append(Token(TOKENS[">>"],None,getLineOfIdx(self.text,self.ptr),getLineOfIdx(self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr] in LETTERS:
+                start=getLineOfIdx(self.text,self.ptr)
                 a=""
                 c=0
                 while self.ptr+c <len(self.text) and self.text[self.ptr+c] in LETTERS:
@@ -228,19 +268,29 @@ class Lexer:
                         a+=self.text[self.ptr+c]
                         c+=1
                 if a in KEYWORDS.keys():
-                    tokens.append(Token(KEYWORDS[a]))
+                    end=getLineOfIdx(self.text,self.ptr+c)
+                    tokens.append(Token(KEYWORDS[a],None,start,end))
                 elif a in TYPES:
-                    tokens.append(Token(a))
+                    end=getLineOfIdx(self.text,self.ptr+c)
+                    tokens.append(Token(a,None,start,end))
                 else:
-                    tokens.append(Token(TOKENS["identifier"],a))
+                    end=getLineOfIdx(self.text,self.ptr+c)
+                    tokens.append(Token(TOKENS["identifier"],a,start,end))
                 self.ptr+=c
             elif self.text[self.ptr]in TOKENS.keys():
-                tokens.append(Token(TOKENS[self.text[self.ptr]]))
+                tokens.append(Token(TOKENS[self.text[self.ptr]],None,start))
                 self.ptr+=1
             else:
                 self.ptr+=1
         return tokens
+    def make_complex(self):
+        self.ptr+=1
+        while self.text[self.ptr] in "\n \t" and self.ptr<len(self.text):
+            self.ptr+=1
+        if self.text[self.ptr] in "ijk":
+            return
     def make_number(self):
+        start=getLineOfIdx(self.text,self.ptr)
         dot=0
         s=""
         while self.ptr<len(self.text) and self.text[self.ptr] in DIGITS+".":
@@ -250,10 +300,12 @@ class Lexer:
                 return Error(self.ptr,self.ptr,"too many '.' in number",self.fn)
             s+=self.text[self.ptr]
             self.ptr+=1
+        end=getLineOfIdx(self.text,self.ptr)
         if "."in s:  
-            return  Token("float",floap(s))
-        return Token("int",ount(s))
+            return  Token("floap",floap(s),start,end)
+        return Token("ount",ount(s),start,end)
     def make_string(self):
+        start=getLineOfIdx(self.text,self.ptr)
         s=""
         
         if self.text[self.ptr]=="'":
@@ -267,7 +319,7 @@ class Lexer:
             self.ptr+=1
             if not find :
                  return Error(first,first,"String error: ' was never closed ",self.fn)
-            return Token("STRING",s)
+            return Token("string",string(s),start,getLineOfIdx(self.ptr))
         elif self.text[self.ptr]=='"':
             self.ptr+=1
             first=self.ptr-1
@@ -279,7 +331,7 @@ class Lexer:
             self.ptr+=1
             if not find :
                  return Error(first,first,'String error: " was never closed ',self.fn)
-            return Token("STRING",s)
+            return Token("string",string(s),start,getLineOfIdx(self.text,self.ptr))
             
 
 

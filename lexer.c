@@ -1,7 +1,9 @@
 #include<stdio.h>
 
 int main(){
-    char TOKENS_key[];
+    char *text;
+    text=malloc(300);
+    text="aakjhbnpm\0";
 
     return 0;
 }
