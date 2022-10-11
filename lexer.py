@@ -140,7 +140,7 @@ TOKENS={
 OPS=["PLUS","MINUS","DIV","MUL","EUCLDIVE","MOD","POW"]
 PARENTHESES=[ "LPAREN","RPAREN","LBRAC","RBRAC","LACCO","RACCO"]
 LOGICOP=["EQ","DIFF","LEESEQ","GREATEQ","LESS","GREAT","AND","OR"]
-LOGICOP=[TOKENS[i] for i in ["=","!=","<=",">=","<",">","&","|"]]
+LOGICOP=[TOKENS[i] for i in ["==","!=","<=",">=","<",">","&","|"]]
 class Token:
     def __init__(self,type_,value=None,line_start=0,line_end=None) -> None:
         self.type=type_

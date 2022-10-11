@@ -293,7 +293,6 @@ class Parser:
     def parse(self):
         global VARS
         self.make_while()
-        
         self.ptr=0
         while self.ptr<len(self.tokens):
             if self.tokens[self.ptr].type in TYPES:
@@ -320,7 +319,7 @@ class Parser:
             elif type(self.tokens[self.ptr])==FuncCall:
                 a=self.ptr
                 if self.tokens[self.ptr].identifier in funcs.keys():
-                    funcs[self.tokens[self.ptr].identifier]["key"](self.tokens[self.ptr].args if len(self.tokens[self.ptr].args)!=0 else None )
+                    funcs[self.tokens[self.ptr].identifier]["key"](self.evalExpr(Expr(self.tokens[self.ptr].args)) if len(self.tokens[self.ptr].args)!=0 else None )
                     self.ptr=a+1
             elif self.tokens[self.ptr].type==TOKENS["identifier"]:
                 name=self.tokens[self.ptr]
@@ -366,22 +365,8 @@ def run(fn,text):
         print(a)
         return 1
 run("stdio","""
-    # salut ca c'esr ub comne etaire ca prend toute la loigne 
-    boolean a=0b;
-    boolean b=not(a);
-    print(a);
-    print("\n");
-    print(b);
-    print("\n");
-    print(a>=b);
-    ount i=0;
-    ount b=0;
-    print('enter a number');
-    ount k=to_ount(input());
-    while(k>i){
-        ount c=i*2;
+    ount i=3;
+    while(i>0){
         print(i*2);
-        print("\n");
-        ount i=i+1;
-        }
+    }
 """)
