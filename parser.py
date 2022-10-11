@@ -57,7 +57,6 @@ class Parser:
             if t[i].type in [TOKENS[">>"],TOKENS["<<"]]:
                 return i
         for i in range(len(t)):#scan for logic operation 
-            
             if t[i].type in LOGICOP:
                 return i
         return None
@@ -174,6 +173,16 @@ class Parser:
             expr.tok.pop(op+1)
             expr.tok.pop(op)
             expr.tok[op-1]=c
+        elif expr.tok[op].type==TOKENS["!="]:
+            if not(op-1>=0 and op+1<len(expr.tok)):
+                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+            a=expr.tok[op-1]
+            b=expr.tok[op+1]
+            c=eq_op(a,b)
+            c.value=not c.value
+            expr.tok.pop(op+1)
+            expr.tok.pop(op)
+            expr.tok[op-1]=c
         elif expr.tok[op].type==TOKENS[">"]:
             if not(op-1>=0 and op+1<len(expr.tok)):
                 return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
@@ -189,7 +198,54 @@ class Parser:
                 return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
             a=expr.tok[op-1]
             b=expr.tok[op+1]
-            c=not gt_op(a,b)
+            c=gt_op(a,b)
+            c.value=not c.value
+            expr.tok.pop(op+1)
+            expr.tok.pop(op)
+            expr.tok[op-1]=c
+            
+        elif expr.tok[op].type==TOKENS["<="]:
+            if not(op-1>=0 and op+1<len(expr.tok)):
+                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+            a=expr.tok[op-1]
+            b=expr.tok[op+1]
+            c=eq_op(a,b)
+            d=gt_op(a,b)
+            d.value=not d.value
+            c=or_op(d,c)
+            expr.tok.pop(op+1)
+            expr.tok.pop(op)
+            expr.tok[op-1]=c
+        
+        elif expr.tok[op].type==TOKENS[">="]:
+            if not(op-1>=0 and op+1<len(expr.tok)):
+                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+            a=expr.tok[op-1]
+            b=expr.tok[op+1]
+            c=eq_op(a,b)
+            d=gt_op(a,b)
+            c=or_op(d,c)
+            expr.tok.pop(op+1)
+            expr.tok.pop(op)
+            expr.tok[op-1]=c
+        
+        
+        elif expr.tok[op].type==TOKENS["&"]:
+            if not(op-1>=0 and op+1<len(expr.tok)):
+                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+            a=expr.tok[op-1]
+            b=expr.tok[op+1]
+            c=and_op(a,b)
+            expr.tok.pop(op+1)
+            expr.tok.pop(op)
+            expr.tok[op-1]=c
+        
+        elif expr.tok[op].type==TOKENS["|"]:
+            if not(op-1>=0 and op+1<len(expr.tok)):
+                return Error(expr.tok[op].line_start,expr.tok[op].line_end,"Error in expression : missing parameter for / (div) operator ",self.fn)
+            a=expr.tok[op-1]
+            b=expr.tok[op+1]
+            c=or_op(a,b)
             expr.tok.pop(op+1)
             expr.tok.pop(op)
             expr.tok[op-1]=c
@@ -254,7 +310,7 @@ class Parser:
                             e.append(self.tokens[i])
                         if semi==None:
                             return Error(self.tokens[name_idx].line_start,self.tokens[name_idx].line_end,"missing ';' ",self.fn)
-                        val=self.evalExpr(Expr(self.makeExpr(e)))#le probleme il est la             
+                        val=self.evalExpr(Expr(self.makeExpr(e)))#le probleme il est la 
                         if isinstance(val,Error):return val
                         if val.value.__class__.__name__!=type_.type:
                             return Error(name.line_start,name.line_end,f"missmatch type '{type_.type}' was expected but '{val.value.__class__.__name__}' was returned",self.fn)
@@ -280,7 +336,8 @@ class Parser:
                         e.append(self.tokens[i])
                     e=self.makeExpr(e)
                     val=self.evalExpr(Expr(e))
-                    funcs[name.value]["key"](val )
+                    funcs[name.value]["key"](val)
+                    
                     self.ptr=r+1
             elif type(self.tokens[self.ptr])==While:
                 cond=self.tokens[self.ptr].condition.tok.copy()
@@ -309,12 +366,22 @@ def run(fn,text):
         print(a)
         return 1
 run("stdio","""
-    ount i = 1;
-    ount k=ount_conv(input());
-    while (k>i) {
-        print(i);
+    # salut ca c'esr ub comne etaire ca prend toute la loigne 
+    boolean a=0b;
+    boolean b=not(a);
+    print(a);
+    print("\n");
+    print(b);
+    print("\n");
+    print(a>=b);
+    ount i=0;
+    ount b=0;
+    print('enter a number');
+    ount k=to_ount(input());
+    while(k>i){
+        ount c=i*2;
+        print(i*2);
         print("\n");
-        ount i = i + 2;
-    }
+        ount i=i+1;
+        }
 """)
-

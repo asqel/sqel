@@ -110,6 +110,7 @@ TOKENS={
     "?":"TERNAYOP",
     "-=":"MINVARSET",
     "+=":"PLUSVARSET",
+    "!":"NOT",
     "!=":"DIFF",
     "<=":"LEESEQ",
     ">=":"GREATEQ",
@@ -138,7 +139,8 @@ TOKENS={
 }
 OPS=["PLUS","MINUS","DIV","MUL","EUCLDIVE","MOD","POW"]
 PARENTHESES=[ "LPAREN","RPAREN","LBRAC","RBRAC","LACCO","RACCO"]
-LOGICOP=["EQ","DIFF","LEESEQ","GREATEQ","LESS","GREAT","AND","OR",]
+LOGICOP=["EQ","DIFF","LEESEQ","GREATEQ","LESS","GREAT","AND","OR"]
+LOGICOP=[TOKENS[i] for i in ["=","!=","<=",">=","<",">","&","|"]]
 class Token:
     def __init__(self,type_,value=None,line_start=0,line_end=None) -> None:
         self.type=type_
@@ -213,7 +215,12 @@ class Lexer:
     def make_tokens(self)->list|Error:
         tokens=[]
         while self.ptr<len(self.text):
-            if self.text[self.ptr] in  DIGITS:
+            if self.text[self.ptr]=="#":
+                self.ptr+=1
+                while self.text[self.ptr]!="\n":
+                    self.ptr+=1
+                self.ptr+=1
+            elif self.text[self.ptr] in  DIGITS:
                 if self.ptr+1<len(self.text) and self.text[self.ptr+1]=="b":
                     tokens.append(Token("boolean",boolean(bool(int(self.text[self.ptr]))),getLineOfIdx(self.text,self.ptr)))
                     self.ptr+=2
@@ -239,19 +246,19 @@ class Lexer:
                     tokens.append(Token(TOKENS["=="],None,getLineOfIdx(self.text,self.ptr),getLineOfIdx(self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr]=="-" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
-                    tokens.append(Token(TOKENS["-="],None,getLineOfIdx(self.text,self.text,self.ptr),getLineOfIdx(self.text,self.text,self.ptr+1)))
+                    tokens.append(Token(TOKENS["-="],None,getLineOfIdx(self.text,self.ptr),getLineOfIdx(self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr]=="+" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
-                    tokens.append(Token(TOKENS["+="],None,getLineOfIdx(self.text,self.text,self.ptr),getLineOfIdx(self.text,self.text,self.ptr+1)))
+                    tokens.append(Token(TOKENS["+="],None,getLineOfIdx(self.text,self.ptr),getLineOfIdx(self.text,self.ptr+1)))
+                    self.ptr+=2
+            elif self.text[self.ptr]==">" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
+                    tokens.append(Token(TOKENS[">="],None,getLineOfIdx(self.text,self.ptr),getLineOfIdx(self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr]=="<" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
-                    tokens.append(Token(TOKENS[">="],None,getLineOfIdx(self.text,self.text,self.ptr),getLineOfIdx(self.text,self.text,self.ptr+1)))
-                    self.ptr+=2
-            elif self.text[self.ptr]=="=" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
-                    tokens.append(Token(TOKENS[">="],None,getLineOfIdx(self.text,self.text,self.ptr),getLineOfIdx(self.text,self.text,self.ptr+1)))
+                    tokens.append(Token(TOKENS["<="],None,getLineOfIdx(self.text,self.ptr),getLineOfIdx(self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr]=="!" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="=":
-                    tokens.append(Token(TOKENS["!="],None,getLineOfIdx(self.text,self.text,self.ptr),getLineOfIdx(self.text,self.text,self.ptr+1)))
+                    tokens.append(Token(TOKENS["!="],None,getLineOfIdx(self.text,self.ptr),getLineOfIdx(self.text,self.ptr+1)))
                     self.ptr+=2
             elif self.text[self.ptr]=="<" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="<":
                     tokens.append(Token(TOKENS["<<"],None,getLineOfIdx(self.text,self.ptr),getLineOfIdx(self.text,self.ptr+1)))
@@ -301,6 +308,7 @@ class Lexer:
             s+=self.text[self.ptr]
             self.ptr+=1
         end=getLineOfIdx(self.text,self.ptr)
+        
         if "."in s:  
             return  Token("floap",floap(s),start,end)
         return Token("ount",ount(s),start,end)
@@ -319,7 +327,7 @@ class Lexer:
             self.ptr+=1
             if not find :
                  return Error(first,first,"String error: ' was never closed ",self.fn)
-            return Token("string",string(s),start,getLineOfIdx(self.ptr))
+            return Token("string",string(s),start,getLineOfIdx(self.text,self.ptr))
         elif self.text[self.ptr]=='"':
             self.ptr+=1
             first=self.ptr-1

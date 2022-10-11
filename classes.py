@@ -69,7 +69,7 @@ class ount:
             s.val=n.__ount__()
         elif isinstance(n,(bool,float,int,str)):
             s.val=int(n)
-    def __str__(s):return str(s.val)
+    def __str__(s):return str(s.val) if s.val!=0 else str("0")
     def __int__(s):return int(s.val)
     def __float__(s):return float(s.val)
     def __ount__(s):return s
@@ -177,7 +177,7 @@ class ount:
         else:
             return Error(None,None,f"unsuported oper '%' and type between {type(a)} and {type(b)}")
     def __bool__(s):
-        return bool(s.val)
+        return False if s.val==0 else True
     def __eq__(s,o):
         if o==None:
             return False
@@ -212,6 +212,10 @@ class boolean(ount):
         super().__init__(bool(n))
     def __ount__(s):
         return s.val
+    def __bool__(s):
+        return super().__bool__()
+    def __str__(s):
+        return str(bool(s))
     
 num_lvl={boolean:2,ount:2,floap:3,comp:4}#toute les operation mathematique faite
 lvl_num={2:ount,3:floap,4:comp}#sur des bool les transforme en ount ou plus 

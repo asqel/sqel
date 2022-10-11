@@ -1,6 +1,8 @@
 from lexer import *
 from classes import *
 
+def not_func(x):
+    return Token("boolean",boolean(not x.value))
 
 def print_func(x):
     if type(x)==list:
@@ -11,7 +13,6 @@ def print_func(x):
         print(VARS[x.value]["value"].value,end="")
     else:
         print(x.value,end="")
-    return Null()
         
 def input_func(x):
     return Token("string",string(input()))
@@ -35,8 +36,9 @@ def open_window(x):
 
 funcs={"print":{"builtin":True,"key":print_func},
                             "input":{"builtin":True,"key":input_func},
-                            "ount_conv":{"builtin":True,"key":ount_conv},
-                            "string_conv":{"builtin":True,"key":string_conv},
-                            "open_window":{"builtin":True,"key":open_window}
+                            "to_ount":{"builtin":True,"key":ount_conv},
+                            "to_string":{"builtin":True,"key":string_conv},
+                            "open_window":{"builtin":True,"key":open_window},
+                            "not":{"builtin":True,"key":not_func}
        }
 

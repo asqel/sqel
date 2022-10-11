@@ -1,5 +1,5 @@
 from genericpath import isfile
-from classes import Null
+from classes import *
 from lexer import *
 
 def rshift_op(a,b):
@@ -91,14 +91,20 @@ def min_op(a:Token,b:Token,t:list,idx):
         return Error(t[idx].line_start,t[idx].line_end,"error in expression",None)
 
 def eq_op(a,b):
-    c=a.value==b.value
+    c=boolean(a.value==b.value)
     return Token(c.__class__.__name__,c,a.line_start,b.line_end)
 
 def gt_op(a,b):
-    c=a.value>b.value
+    c=boolean(a.value>b.value)
     return Token(c.__class__.__name__,c,a.line_start,b.line_end)
 
+def and_op(a,b):
+    c=boolean(a.value and b.value)
+    return Token(c.__class__.__name__,c,a.line_start,b.line_end)
 
+def or_op(a,b):
+    c=boolean(a.value or b.value)
+    return Token(c.__class__.__name__,c,a.line_start,b.line_end)
 
 
 
