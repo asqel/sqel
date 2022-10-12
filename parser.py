@@ -319,8 +319,53 @@ class Parser:
                 self.ptr+=1
         self.ptr=0
         return self.tokens
+    
+    def make_if(self):
+        while self.ptr<len(self.tokens):
+            if self.tokens[self.ptr].type==KEYWORDS["if"] and self.ptr+1<len(self.tokens):
+                start=self.ptr
+                l_par=self.ptr+1
+                r_par=findPar(self.tokens,l_par)
+                if r_par==None:
+                    print(Error(self.tokens[start].line_start,self.tokens[start].line_end,"'(' was never closed",self.fn))
+                    exit()
+                e=[]
+                for i in range(l_par+1,r_par):
+                    e.append(self.tokens[i])
+                e=Expr(self.makeExpr(e))
+                if not( r_par <len(self.tokens) and self.tokens[r_par+1].type==TOKENS["{"]):
+                    print(Error(self.tokens[l_par].line_start,self.tokens[l_par].line_end,"error in if"))
+                    exit()
+                l_brac=r_par+1
+                r_brac=findPar(self.tokens,l_brac,TOKENS["{"],TOKENS["}"])
+                if r_brac==None:
+                    print(Error(self.tokens[l_brac].line_start,self.tokens[l_brac].line_end,"'{' was never closed",self.fn))
+                    exit()
+                t=[]
+                for i in range(l_brac+1,r_brac):
+                    t.append(self.tokens[i])
+                p=Parser(t,self.fn)
+                t=p.make_if()
+                t=self.makeExpr(t)
+                k=[]
+                oui=True
+                for i in  range(len(self.tokens)):
+                    if start<=i<=r_brac and oui==True:
+                        oui=False
+                        k.append(If(start,r_brac,e,t))
+                    if not start<=i<=r_brac:
+                        k.append(self.tokens[i])
+                self.tokens=k
+                self.ptr=r_brac+1
+                        
+            else:
+                self.ptr+=1
+        self.ptr=0
+        return self.tokens
+    
     def parse(self):
         global VARS
+        self.make_if()
         self.make_while()
         self.ptr=0
         while self.ptr<len(self.tokens):
@@ -403,6 +448,15 @@ class Parser:
                     self.tokens[self.ptr].condition.tok=cond.copy()
                     self.tokens[self.ptr].tok=t.copy()
                 self.ptr+=1
+            elif type(self.tokens[self.ptr])==If:
+                cond=self.tokens[self.ptr].condition.tok.copy()
+                t=self.tokens[self.ptr].tok.copy()
+                if (bool(self.evalExpr(  self.tokens[self.ptr].condition).value)):
+                    p=Parser(t.copy(),self.fn)
+                    p.parse()
+                    self.tokens[self.ptr].condition.tok=cond.copy()
+                    self.tokens[self.ptr].tok=t.copy()
+                self.ptr+=1
             else:
                 self.ptr+=1       
      
@@ -426,5 +480,9 @@ run("stdio","""
     i=i+3;
     print(i);print("\n");
     print(i>10)
+    i=i+1;
+    if(i==10){
+        print('couc');
+    }
     
 """)

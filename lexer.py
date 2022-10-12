@@ -10,6 +10,17 @@ class While:
          self.tok=tokens
          self.condition=condition
          
+         
+class If:
+    def __init__(self,start,end,condition,tokens) -> None:
+         self.type="if"
+         self.start=start
+         self.end=end
+         self.tok=tokens
+         self.condition=condition
+         
+    
+         
     def __repr__(self) -> str:
          return f"""While:({str(self.condition)}){
              {str(self.tok)}
