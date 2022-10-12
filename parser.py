@@ -1,9 +1,73 @@
 import os
 from  lexer import *
 import sys
-from funcs import *
 from op import *
 from  classes import *
+
+
+from random import randint
+class func:
+    def not_func(x):
+        return Token("boolean",boolean(not x.value))
+
+    def print_func(x):
+        if type(x)==list:
+            for i in x:
+                func.print_func(i)
+
+        elif x.type==TOKENS["identifier"] and x.value in VARS.keys():
+            print(VARS[x.value]["value"].value)
+        else:
+            print(x.value)
+
+    def input_func(x):
+        return Token("string",string(input()))
+
+    def ount_conv(k):
+        x=k
+        if type(k)!=Token:
+            x=k[0]
+        else:c=ount(int(x.value))
+        return Token("ount",c,x.line_start,x.line_end)
+
+    def random_func(a):
+        return Token("ount",randint(0,int(a.value)),a.line_start,a.line_end)
+
+    def string_conv(k):
+        x=k
+        if type(k)!=Token:
+            x=k[0]
+        return Token("string",string(x.value),x.line_start,x.line_end)
+
+    def open_window(x):
+        if x!=None:
+            return False
+        print("pourquoi")
+
+    def import_func(x):
+        path=str(x.value)
+        if type(x.value)!=string:print(Error(x.line_start,x.line_end,"import only takes string arguments",None));exit()
+        if not os.path.exists(str(path)):print(Error(x.line_start,x.line_end,f"import only takes absolute path or maybe the file does  not exist : {path}",None));exit()
+        if not os.path.isfile(path):print(Error(x.line_start,x.line_end,f"import only takes path of file : {path}",None));exit()
+        l=Lexer(path,open(path,"r").read())
+        t=l.make_tokens()
+        p=Parser(t,path)
+        p.parse()
+    
+
+
+
+funcs={"print":{"builtin":True,"key":func.print_func},
+                            "input":{"builtin":True,"key":func.input_func},
+                            "to_ount":{"builtin":True,"key":func.ount_conv},
+                            "to_string":{"builtin":True,"key":func.string_conv},
+                            "open_window":{"builtin":True,"key":func.open_window},
+                            "not":{"builtin":True,"key":func.not_func},
+                            "random":{"builtin":True,"key":func.random_func},
+                            "import":{"builtin":True,"key":func.import_func}
+       }
+
+
 
 class Parser:
     def __init__(self,tokens,fn):
@@ -50,19 +114,22 @@ class Parser:
     
     def findBestOp(self,t):
         for i in range(len(t)):#scan for pow(^)
-            if t[i].type==TOKENS["^"]:
+            if t[i]!=None and t[i].type==TOKENS["^"]:
                 return i
         for i in range(len(t)):#scan for MUL DIV MOD EUCLIDIVE(* / % //)
-            if t[i].type in [TOKENS["*"],TOKENS["/"],TOKENS["%"],TOKENS["//"]]:
+            if t[i]!=None and t[i].type in [TOKENS["*"],TOKENS["/"],TOKENS["%"],TOKENS["//"]]:
                 return i
         for i in range(len(t)):
-            if t[i].type in [TOKENS["+"],TOKENS["-"]]:
+            if t[i]!=None and t[i].type in [TOKENS["+"],TOKENS["-"]]:
                 return i
         for i in range(len(t)):
-            if t[i].type in [TOKENS[">>"],TOKENS["<<"]]:
+            if t[i]!=None and t[i].type in [TOKENS[">>"],TOKENS["<<"]]:
                 return i
         for i in range(len(t)):#scan for logic operation 
-            if t[i].type in LOGICOP:
+            if t[i]!=None and t[i].type in COMPAR_OP:
+                return i
+        for i in range(len(t)):#scan for logic operation 
+            if t[i]!=None and t[i].type in LOGICA_OP:
                 return i
         return None
     
@@ -83,6 +150,7 @@ class Parser:
             if len(expr.tok)==1:
                 return expr.tok[0]
             elif len(expr.tok)>1:
+                print(expr)
                 print(Error(expr.tok[0].line_start,expr.tok[0].line_end,"error in expression",self.fn))
                 exit()
             else:
@@ -303,7 +371,10 @@ class Parser:
                     t.append(self.tokens[i])
                 p=Parser(t,self.fn)
                 t=p.make_while()
+                p=Parser(t,self.fn)
+                t=p.make_if()
                 t=self.makeExpr(t)
+                
                 k=[]
                 oui=True
                 for i in  range(len(self.tokens)):
@@ -312,8 +383,9 @@ class Parser:
                         k.append(While(start,r_brac,e,t))
                     if not start<=i<=r_brac:
                         k.append(self.tokens[i])
-                self.tokens=k
-                self.ptr=r_brac+1
+                self.tokens=k.copy()
+                k=[]
+                self.ptr=start+1
                         
             else:
                 self.ptr+=1
@@ -346,6 +418,8 @@ class Parser:
                     t.append(self.tokens[i])
                 p=Parser(t,self.fn)
                 t=p.make_if()
+                p=Parser(t,self.fn)
+                t=p.make_while()
                 t=self.makeExpr(t)
                 k=[]
                 oui=True
@@ -356,7 +430,7 @@ class Parser:
                     if not start<=i<=r_brac:
                         k.append(self.tokens[i])
                 self.tokens=k
-                self.ptr=r_brac+1
+                self.ptr=start+1
                         
             else:
                 self.ptr+=1
@@ -369,6 +443,8 @@ class Parser:
         self.make_while()
         self.ptr=0
         while self.ptr<len(self.tokens):
+            #print(self.tokens[self.ptr],"salut les",self.uuid,"su")
+            
             if self.tokens[self.ptr].type in TYPES:
                 if self.ptr+3<len(self.tokens):#Type Identifer Eq Expr
                     if self.tokens[self.ptr].type in TYPES and self.tokens[self.ptr+1].type==TOKENS["identifier"] and self.tokens[self.ptr+2].type==TOKENS["="]:
@@ -404,7 +480,6 @@ class Parser:
                 name=self.tokens[self.ptr]
                 name_idx=self.ptr
                 if self.ptr+2<len(self.tokens):
-                    
                     if name.value in funcs.keys():
                         l=self.ptr+1
                         r=findPar(self.tokens,l)
@@ -442,7 +517,7 @@ class Parser:
             elif type(self.tokens[self.ptr])==While:
                 cond=self.tokens[self.ptr].condition.tok.copy()
                 t=self.tokens[self.ptr].tok.copy()
-                while (bool(self.evalExpr(  self.tokens[self.ptr].condition).value)):
+                while (bool(self.evalExpr(  Expr(self.tokens[self.ptr].condition.tok.copy())).value)):
                     p=Parser(t.copy(),self.fn)
                     p.parse()
                     self.tokens[self.ptr].condition.tok=cond.copy()
@@ -451,7 +526,7 @@ class Parser:
             elif type(self.tokens[self.ptr])==If:
                 cond=self.tokens[self.ptr].condition.tok.copy()
                 t=self.tokens[self.ptr].tok.copy()
-                if (bool(self.evalExpr(  self.tokens[self.ptr].condition).value)):
+                if (bool(self.evalExpr(  Expr(self.tokens[self.ptr].condition.tok.copy())).value)):
                     p=Parser(t.copy(),self.fn)
                     p.parse()
                     self.tokens[self.ptr].condition.tok=cond.copy()
@@ -463,26 +538,47 @@ class Parser:
 ############################
 #RUN
 
-
 def run(fn,text):
-    lexer=Lexer(fn,text)
-    tokens=lexer.make_tokens()
-    if isinstance(tokens,Error):
-        print(tokens)
-        return 1
-    parser=Parser(tokens,fn)
-    a=parser.parse()
-    if isinstance(a,Error):
-        print(a)
-        return 1
-run("stdio","""
-    ount i=3+4;
-    i=i+3;
-    print(i);print("\n");
-    print(i>10)
-    i=i+1;
-    if(i==10){
-        print('couc');
-    }
-    
-""")
+        lexer=Lexer(fn,text)
+        tokens=lexer.make_tokens()
+        if isinstance(tokens,Error):
+            print(tokens)
+            return 1
+        parser=Parser(tokens,fn)
+        a=parser.parse()
+        if isinstance(a,Error):
+            print(a)
+            return 1
+
+
+run(__file__,"""
+        import("C:/Users/axel/Documents/GitHub/sqel/a.qel");
+        print(random(10));/* random(x): renvoie 1 chiffre random entre 0(inclus) et x(inclus)*/
+        ount end =1000;
+        ount i =0;
+        while(i<end){
+            boolean b=1b;
+            ount p=2;
+            if (i==2){
+                print(i)
+                }
+            if (i>2){
+                while(p<to_ount(i^0.5)+3){/* jai pas fini les floap donc faut les convertir en ount */
+                if(i%p==0){
+                    b=0b;
+
+
+                }
+                p=p+1;
+                }
+            }
+
+            if (b & i>2){
+                print(i);
+                }
+            i=i+1;
+
+
+        }
+
+    """)

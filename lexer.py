@@ -9,6 +9,10 @@ class While:
          self.end=end
          self.tok=tokens
          self.condition=condition
+    
+    def __repr__(self) -> str:
+         return f"""W:({str(self.condition)})
+     """+"{"+f"{str(self.tok)}"+"}"
          
          
 class If:
@@ -151,7 +155,8 @@ TOKENS={
 OPS=["PLUS","MINUS","DIV","MUL","EUCLDIVE","MOD","POW"]
 PARENTHESES=[ "LPAREN","RPAREN","LBRAC","RBRAC","LACCO","RACCO"]
 LOGICOP=["EQ","DIFF","LEESEQ","GREATEQ","LESS","GREAT","AND","OR"]
-LOGICOP=[TOKENS[i] for i in ["==","!=","<=",">=","<",">","&","|"]]
+COMPAR_OP=[TOKENS[i] for i in ["==","!=","<=",">=","<",">"]]
+LOGICA_OP=[TOKENS[i] for i in ["&","|"]]
 class Token:
     def __init__(self,type_,value=None,line_start=0,line_end=None) -> None:
         self.type=type_
@@ -226,11 +231,11 @@ class Lexer:
     def make_tokens(self)->list|Error:
         tokens=[]
         while self.ptr<len(self.text):
-            if self.text[self.ptr]=="#":
-                self.ptr+=1
-                while self.text[self.ptr]!="\n":
+            if self.text[self.ptr]=="/" and self.ptr+1<len(self.text) and self.text[self.ptr+1]=="*":
+                self.ptr+=2
+                while self.text[self.ptr]!="*" and self.ptr+1<len(self.text) and self.text[self.ptr+1]!="/":
                     self.ptr+=1
-                self.ptr+=1
+                self.ptr+=2
             elif self.text[self.ptr] in  DIGITS:
                 if self.ptr+1<len(self.text) and self.text[self.ptr+1]=="b":
                     tokens.append(Token("boolean",boolean(bool(int(self.text[self.ptr]))),getLineOfIdx(self.text,self.ptr)))

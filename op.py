@@ -20,19 +20,22 @@ def mul_op(a,b):
 
 def div_op(a,b):
     if b.value==0:
-        return Error(a.start_line,b.end_line,"division by 0",None)
+        print(Error(a.line_start,b.line_end,"division by 0",None))
+        exit()
     c=a.value/b.value
     return Token(c.__class__.__name__,c,a.line_start,b.line_end)
 
 def euclidiv_op(a,b):
-    if b.value==0:
-        return Error(a.start_line,b.end_line,"division by 0",None)
+    if b.value==ount(0):
+        print(Error(a.line_start,b.line_end,"division by 0",None))
+        exit()
     c=a.value//b.value
     return Token(c.__class__.__name__,c,a.line_start,b.line_end)
 
 def mod_op(a,b):
-    if b.value==0:
-        return Error(a.start_line,b.end_line,"modulo by 0",None)
+    if b.value==ount(0):
+        print(Error(a.line_start,b.line_end,"modulo by 0",None))
+        exit()
     c=a.value%b.value
     return Token(c.__class__.__name__,c,a.line_start,b.line_end)
 
@@ -59,7 +62,8 @@ def add_op(a:Token,b:Token,t:list,idx):
         if type(a)==Null:
             t.pop(idx-1)
     else:
-        return Error(t[idx].line_start,t[idx].line_end,"error in expression",None)
+        print(Error(t[idx].line_start,t[idx].line_end,"error in expression",None))
+        exit()
     
 def min_op(a:Token,b:Token,t:list,idx):
     if a!=None and b!=None and not(a.isTok()) and not(b.isTok()):
@@ -88,7 +92,8 @@ def min_op(a:Token,b:Token,t:list,idx):
         if type(a)==Null:
             t.pop(idx-1)
     else:
-        return Error(t[idx].line_start,t[idx].line_end,"error in expression",None)
+        print(Error(t[idx].line_start,t[idx].line_end,"error in expression",None))
+        exit()
 
 def eq_op(a,b):
     c=boolean(a.value==b.value)

@@ -1,5 +1,3 @@
-from tkinter import E
-from typing import overload
 from lexer import *
 class Error:
     def __init__(self,pos_start,pos_end,error_name,details):
@@ -48,9 +46,18 @@ class floap:
     def __init__(self,n) -> None:
         if "__floap__"in dir(n) and str(type(n.__floap__))=="<class 'method'>":
             self.val=float(n.__floap__())
-        elif isinstance(n,(bool,float,int,str)):
+        elif isinstance(n,(bool,float,int,ount,boolean,floap,str)):
             self.val=float(n)
 
+    def __pow__(s,o):
+        return floap(s.val**o.val)
+    def __float__(s):
+        return float(s.val)
+    def __str__(s):
+        return str(s.val)
+
+    def __int__(s):
+        return int(s.val)
 
 
 class comp:
@@ -91,7 +98,7 @@ class ount:
     def __add__(a,b):
         if   isinstance(b,ount):return ount(a.val+b.val)
         if isinstance(b,tuple(num_lvl.keys())):
-            t=max(num_lvl[b],num_lvl[a])
+            t=max(num_lvl[type(b)],num_lvl[type(a)])
             t=lvl_num[t]
             a=t(a)
             b=t(b)
@@ -103,7 +110,7 @@ class ount:
     def __sub__(a,b):
         if   isinstance(b,ount):return ount(a.val-b.val)
         if isinstance(b,tuple(num_lvl.keys())):
-            t=max(num_lvl[b],num_lvl[a])
+            t=max(num_lvl[type(b)],num_lvl[type(a)])
             t=lvl_num[t]
             a=t(a)
             b=t(b)
@@ -115,7 +122,7 @@ class ount:
     def __mul__(a,b):
         if   isinstance(b,ount):return ount(a.val*b.val)
         if isinstance(b,tuple(num_lvl.keys())):
-            t=max(num_lvl[b],num_lvl[a])
+            t=max(num_lvl[type(b)],num_lvl[type(a)])
             t=lvl_num[t]
             a=t(a)
             b=t(b)
@@ -127,7 +134,7 @@ class ount:
     def __truediv__(a,b):
         if   isinstance(b,ount):return floap(a.val/b.val) if b.val!=0 else Error(None,None,"division by zero",None)
         if isinstance(b,tuple(num_lvl.keys())):
-            t=max(num_lvl[b],num_lvl[a])
+            t=max(num_lvl[type(b)],num_lvl[type(a)])
             if t<3:t=3
             t=lvl_num[t]
             a=t(a)
@@ -140,7 +147,7 @@ class ount:
     def __floordiv__(a,b):
         if   isinstance(b,ount):return ount(a.val//b.val) if b.val!=0 else Error(None,None,"floor division by zero",None)
         if isinstance(b,tuple(num_lvl.keys())):
-            t=max(num_lvl[b],num_lvl[a])
+            t=max(num_lvl[type(b)],num_lvl[type(a)])
             if t!=2:t=2
             t=lvl_num[t]
             a=t(a)
@@ -150,10 +157,10 @@ class ount:
             return ount(a.val//b.__ount__().val)
         else:
             return Error(None,None,f"unsuported oper '//' and type between {type(a)} and {type(b)}")
-    def __modulo__(a,b):
+    def __mod__(a,b):
         if   isinstance(b,ount):return ount(a.val%b.val) if b.val!=0 else Error(None,None,"modulo by zero",None)
         if isinstance(b,tuple(num_lvl.keys())):
-            t=max(num_lvl[b],num_lvl[a])
+            t=max(num_lvl[type(b)],num_lvl[type(a)])
             if t!=2 and t!=4:t=2
             t=lvl_num[t]
             a=t(a)
@@ -167,7 +174,8 @@ class ount:
         if isinstance(b,ount):
             return ount(a.val**b.val) if not(a.val==0 and b.val==0) else Error(None,None,"zero pow zero",None)
         if isinstance(b,tuple(num_lvl.keys())):
-            t=max(num_lvl[b],num_lvl[a])
+            t=max(num_lvl[type(b)],num_lvl[type(a)])
+            print(t)
             t=lvl_num[t]
             a=t(a)
             b=t(b)
