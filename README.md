@@ -28,51 +28,51 @@ pow : ^
 mul : *  
 div : /  
 euclidiv(floor div) : //  
-modulo : %
+modulo : %  
 
-add : +
-sub : -
+add : +  
+sub : -  
 
-r shift bit : >>
-l shift bit : <<
-
-
-functions:
-    to_ount(x): converte x to a ount 
-    to_string(x): converte x to a string
-    random(x): return a random number between 0(included) and x(included)
-    open_window(x): print('pourquoi')
-    import(x): import file x (x must be asbolute path of file)
-    print(x): print x to prompt
-    input():read prompt and returned it to a string
-    not(x): reverte boolean value of x
-
-if(boolean value){
-    instructions
-}
-while(boolean value){
-    instructions
-}
-
-ex:
-    if(a>0){
-        print(2/a)
-    }
+r shift bit : >>  
+l shift bit : <<  
 
 
-operation order:
-    1:pow(^)
-    2:mul(*),div(/),euclidiv(//),modulo(%)
-    3:add(+),sub(-)
-    4:r shift(>>),l shift(<<)
-    5:less than(<),greater than(>),less equal(<=),greater equal(>=),equal(==),not equal(!=)
-    6:and(&),or(|)
+functions:  
+    to_ount(x): converte x to a ount  
+    to_string(x): converte x to a string  
+    random(x): return a random number between 0(included) and x(included)  
+    open_window(x): print('pourquoi')  
+    import(x): import file x (x must be asbolute path of file)  
+    print(x): print x to prompt  
+    input():read prompt and returned it to a string  
+    not(x): reverte boolean value of x  
 
-delcare variable:
-    Type Name = Value;
+if(boolean value){  
+    instructions  
+}  
+while(boolean value){  
+    instructions  
+}  
 
-change variable value::
-    Name=Value;
+ex:  
+    if(a>0){  
+        print(2/a)  
+    }  
 
-to make commentary:
-    /* this a commentary */
+
+operation order:  
+    1:pow(^)  
+    2:mul(*),div(/),euclidiv(//),modulo(%)  
+    3:add(+),sub(-)  
+    4:r shift(>>),l shift(<<)  
+    5:less than(<),greater than(>),less equal(<=),greater equal(>=),equal(==),not equal(!=)  
+    6:and(&),or(|)  
+
+delcare variable:  
+    Type Name = Value;  
+
+change variable value::  
+    Name=Value;  
+
+to make commentary:  
+    /* this a commentary */  
