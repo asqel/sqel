@@ -1,33 +1,33 @@
 to run a programm put the code in the run function in parser.py
 
 
-types:
-    ount
-    booulean
-    string
-    floap(not suported)
-    comp(not supported)
+types:  
+    ount  
+    booulean  
+    string  
+    floap(not suported)  
+    comp(not supported)  
 
-string :" " or ' ' 
-ount : just a number
-boolean : 1b or 0b
+string :" " or ' '   
+ount : just a number  
+boolean : 1b or 0b  
 
-and: &
-or : |
+and: &  
+or : |  
 
-less than= <
-greater than = >
-less equal = <=
-greater equal = >=
+less than= <  
+greater than = >  
+less equal = <=  
+greater equal = >=  
 
-equal = ==
-not equal = !=
+equal = ==  
+not equal = !=  
 
 
-pow : ^
-mul : *
-div : /
-euclidiv(floor div) : //
+pow : ^  
+mul : *  
+div : /  
+euclidiv(floor div) : //  
 modulo : %
 
 add : +
