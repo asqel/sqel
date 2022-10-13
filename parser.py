@@ -6,7 +6,15 @@ from  classes import *
 
 
 from random import randint
-class func:
+if 1:
+    def get_path(x):
+        return Token("string",string(str(os.path.abspath(__file__))))
+    
+    def get_folder(x):
+        if type(x)==list:
+            x=x[0]
+        return Token("string",string(str(os.path.dirname(str(x.value)))))
+    
     def not_func(x):
         return Token("boolean",boolean(not x.value))
 
@@ -57,14 +65,16 @@ class func:
 
 
 
-funcs={"print":{"builtin":True,"key":func.print_func},
-                            "input":{"builtin":True,"key":func.input_func},
-                            "to_ount":{"builtin":True,"key":func.ount_conv},
-                            "to_string":{"builtin":True,"key":func.string_conv},
-                            "open_window":{"builtin":True,"key":func.open_window},
-                            "not":{"builtin":True,"key":func.not_func},
-                            "random":{"builtin":True,"key":func.random_func},
-                            "import":{"builtin":True,"key":func.import_func}
+funcs={"print":{"builtin":True,"key":print_func},
+                            "input":{"builtin":True,"key":input_func},
+                            "to_ount":{"builtin":True,"key":ount_conv},
+                            "to_string":{"builtin":True,"key":string_conv},
+                            "open_window":{"builtin":True,"key":open_window},
+                            "not":{"builtin":True,"key":not_func},
+                            "random":{"builtin":True,"key":random_func},
+                            "import":{"builtin":True,"key":import_func},
+                            "get_path":{"builtin":True,"key":get_path},
+                            "get_folder":{"builtin":True,"key":get_folder}
        }
 
 
@@ -142,6 +152,7 @@ class Parser:
                 if expr.tok[i].value in VARS.keys():
                     name=expr.tok[i].value
                     expr.tok[i]=Token(VARS[name]["type"],VARS[name]["value"].value,expr.tok[i].line_start,expr.tok[i].line_end)
+        for i in range(len(expr.tok)):
             if type(expr.tok[i])==FuncCall:
                 if expr.tok[i].identifier in funcs.keys():
                     expr.tok[i]=funcs[expr.tok[i].identifier]["key"](self.evalExpr(Expr(expr.tok[i].args)))
@@ -551,34 +562,4 @@ def run(fn,text):
             return 1
 
 
-run(__file__,"""
-        import("C:/Users/axel/Documents/GitHub/sqel/a.qel");
-        print(random(10));/* random(x): renvoie 1 chiffre random entre 0(inclus) et x(inclus)*/
-        ount end =1000;
-        ount i =0;
-        while(i<end){
-            boolean b=1b;
-            ount p=2;
-            if (i==2){
-                print(i)
-                }
-            if (i>2){
-                while(p<to_ount(i^0.5)+3){/* jai pas fini les floap donc faut les convertir en ount */
-                if(i%p==0){
-                    b=0b;
-
-
-                }
-                p=p+1;
-                }
-            }
-
-            if (b & i>2){
-                print(i);
-                }
-            i=i+1;
-
-
-        }
-
-    """)
+run(__file__,open('main.qel',"r").read())

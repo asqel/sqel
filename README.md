@@ -1,4 +1,4 @@
-to run a programm put the code in the run function in parser.py
+to run a programm put the code in the main.qel and run parser.py
 
 
 types:  
@@ -46,6 +46,8 @@ functions:
     print(x): print x to prompt  
     input():read prompt and returned it to a string  
     not(x): reverte boolean value of x  
+    get_path(): return the absolute path of the file in a string
+    get_folder(x): return the absolute path of the parent folder of the path x in a string
 
 if(boolean value){  
     instructions  
