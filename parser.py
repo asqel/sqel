@@ -21,7 +21,7 @@ if 1:
     def print_func(x):
         if type(x)==list:
             for i in x:
-                func.print_func(i)
+                print_func(i)
 
         elif x.type==TOKENS["identifier"] and x.value in VARS.keys():
             print(VARS[x.value]["value"].value)
