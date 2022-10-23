@@ -1,4 +1,29 @@
 from lexer import *
+
+class loust:
+    def __init__(self,x) -> None:
+        if isinstance(x,list):
+            self.val=x
+        else:
+            self.val=list(x)
+    def __add__(self,o):
+        if isinstance(o,list):
+            return string(self.val+o.val)
+    def __str__(self):
+        return str(self.val)
+    def __mul__(s,o):
+        if isinstance(o,ount):
+            return loust(s.val*o.val)
+        
+    def __bool__(s):
+        return bool(s.val)    
+    
+    def __len__(s):
+        return len(s.val)
+    def __eq__(s,o):
+        return boolean(s.val==o.val)
+
+
 class Error:
     def __init__(self,pos_start,pos_end,error_name,details):
         self.pos_start=pos_start
@@ -16,7 +41,13 @@ class Error:
         result+=f", from {self.pos_start} to {self.pos_end}"
         return result
   
+
+    
+  
 class  string:
+    def __int__(self):
+        if self.val.isdigit():
+            return int(self.val)
     def __init__(self,s) -> None:
         self.val=str(s)
     def __add__(self,o):
@@ -28,7 +59,15 @@ class  string:
             return string(s.val*o.val)
         
     def __bool__(s):
-        return bool(s.val)    
+        return bool(s.val)  
+    def set_idx(s,i,n):
+        a=""
+        for i in range(len(s.val)):
+            if i!=i:
+                a+=s.val[i]
+            else:
+                a+=n
+        s.val=a  
     
     
 class Null:
@@ -51,6 +90,11 @@ class floap:
 
     def __pow__(s,o):
         return floap(s.val**o.val)
+    def __add__(s,o):
+        return floap(s.val+o.val)
+    
+    def __sub__(s,o):
+        return floap(s.val-o.val)
     def __float__(s):
         return float(s.val)
     def __str__(s):
@@ -61,14 +105,50 @@ class floap:
 
 
 class comp:
-    def __init__(self,r,i=0) -> None:
-        if "__comp__" in dir(r) and str(type(r.__comp__))=="<class 'method'>":
-            a=r.__comp__()
-            self.re=float(a[0])
-            self.im=float(a[1])
-        elif isinstance(r,(bool,float,int,str)) and  isinstance(i,(bool,float,int,str)):
-            self.re=float(r)
-            self.im=float(i)
+    
+    def __init__(self,n) -> None:
+        if "__comp__" in dir(n) and str(type(n.__comp__))=="<class 'method'>":
+            self.n=n.__comp__()
+        elif isinstance(n,(bool,float,int,str)):
+            self.n=complex(n)
+            
+    def __pow__(s,o):
+        if isinstance(o,(bool,int,float,complex)):
+            o=comp(o)
+        if isinstance(o,(boolean,ount,floap)):
+            return comp(s.val**o.val)
+        
+    def __add__(s,o):
+        if isinstance(o,(bool,int,float,complex)):
+            o=comp(o)
+        if isinstance(o,(boolean,ount,floap)):
+            return comp(s.val+o.val)
+        
+    def __sub__(s,o):
+        if isinstance(o,(bool,int,float,complex)):
+            o=comp(o)
+        if isinstance(o,(boolean,ount,floap)):
+            return comp(s.val-o.val)
+        
+    def __mul__(s,o):
+        if isinstance(o,(bool,int,float,complex)):
+            o=comp(o)
+        if isinstance(o,(boolean,ount,floap)):
+            return comp(s.val*o.val)
+        
+    def __truediv__(s,o):
+        if isinstance(o,(bool,int,float,complex)):
+            o=comp(o)
+        if isinstance(o,(boolean,ount,floap)):
+            return comp(s.val/o.val)
+        
+    def __floordiv__(s,o):
+        if isinstance(o,(bool,int,float,complex)):
+            o=comp(o)
+        if isinstance(o,(boolean,ount,floap)):
+            return comp(s.val//o.val)
+        
+        
 class ount:
     
     def __init__(s,n):
@@ -175,7 +255,6 @@ class ount:
             return ount(a.val**b.val) if not(a.val==0 and b.val==0) else Error(None,None,"zero pow zero",None)
         if isinstance(b,tuple(num_lvl.keys())):
             t=max(num_lvl[type(b)],num_lvl[type(a)])
-            print(t)
             t=lvl_num[t]
             a=t(a)
             b=t(b)
@@ -186,6 +265,8 @@ class ount:
             return Error(None,None,f"unsuported oper '%' and type between {type(a)} and {type(b)}")
     def __bool__(s):
         return False if s.val==0 else True
+    def __neg__(s):
+        return ount(-s.val)
     def __eq__(s,o):
         if o==None:
             return False

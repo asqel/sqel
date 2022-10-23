@@ -45,6 +45,7 @@ FUNCDEF={}#id:{FuncDef}
 FUNCDEFCLASS={}#[id,class]:{VarDef}
 FUNCVARS={}#{"function name":[[a=2],[a=3]]}plusieur liste si il ya de la recustion
 TYPES=[
+    "loust",
     "string",
     "int",
     "ount",

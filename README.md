@@ -48,6 +48,7 @@ functions:
     not(x): reverte boolean value of x  
     get_path(): return the absolute path of the file in a string
     get_folder(x): return the absolute path of the parent folder of the path x in a string
+    time(): return time in floap
 
 if(boolean value){  
     instructions  

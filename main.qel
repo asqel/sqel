@@ -1,23 +1,22 @@
-import(get_folder(get_path())+"/a.qel");
-print(random(10));/* random(x): renvoie 1 chiffre random entre 0(inclus) et x(inclus)*/
-ount end =1000;
-ount i =0;
-while(i<end){
-    boolean b=1b;
-    ount p=2;
-    if (i==2){
-        print(i)
+
+
+ount i=10;
+ount fin =to_ount(input());
+floap t=time();
+while (i<fin){
+    boolean p=1b;
+    ount k=2;
+    ount r=to_ount(i^0.5)+1;
+    while(k<r){
+        if(i%k==0){
+            p=0b;
         }
-    if (i>2){
-        while(p<to_ount(i^0.5)+3){/* jai pas fini les floap donc faut les convertir en ount */
-        if(i%p==0){
-            b=0b;
-        }
-        p=p+1;
-        }
+        k=k+1;
     }
-    if (b & i>2){
+    if (p){
         print(i);
-        }
+    }
     i=i+1;
+
 }
+print(time()-t);

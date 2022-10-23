@@ -1,12 +1,14 @@
 import os
+from time import time
 from  lexer import *
 import sys
 from op import *
 from  classes import *
 
-
 from random import randint
 if 1:
+    def get_time(x):
+        return Token("floap",floap(time()))
     def get_path(x):
         return Token("string",string(str(os.path.abspath(__file__))))
     
@@ -26,6 +28,7 @@ if 1:
         elif x.type==TOKENS["identifier"] and x.value in VARS.keys():
             print(VARS[x.value]["value"].value)
         else:
+            
             print(x.value)
 
     def input_func(x):
@@ -61,7 +64,8 @@ if 1:
         t=l.make_tokens()
         p=Parser(t,path)
         p.parse()
-    
+    def exec_bf(x):
+        pass
 
 
 
@@ -74,9 +78,10 @@ funcs={"print":{"builtin":True,"key":print_func},
                             "random":{"builtin":True,"key":random_func},
                             "import":{"builtin":True,"key":import_func},
                             "get_path":{"builtin":True,"key":get_path},
-                            "get_folder":{"builtin":True,"key":get_folder}
+                            "get_folder":{"builtin":True,"key":get_folder},
+                            "time":{"builtin":True,"key":get_time}
+                            
        }
-
 
 
 class Parser:
@@ -85,6 +90,7 @@ class Parser:
         self.ptr=0
         self.fn=fn
         self.abs_tokens=tokens.copy()
+        
         
     def makeExpr(self,t):
         tok_expr=[]
@@ -117,6 +123,10 @@ class Parser:
                         a.append(t[i])
                 tok_expr.append(Expr(self.makeExpr(a)))
                 p=right+1
+            
+                
+                
+                
             else:
                 tok_expr.append(t[p])
                 p+=1   
@@ -142,15 +152,74 @@ class Parser:
             if t[i]!=None and t[i].type in LOGICA_OP:
                 return i
         return None
-    
+    def make_loust(self,tok):
+        
+        rep=[]
+        p=0
+        while len(tok)>p:
+            if tok[p].type==TOKENS["["]:
+                l=p
+                r=findPar(tok,l,TOKENS["["],TOKENS[']'])
+                if r==None:print(Error(tok[p].line_start,tok[p].line_end,"'[' was ever closed",self.fn));exit()
+                e=[]
+                for i in range(l+1,r):
+                   e.append(tok[i])
+                rep.append(Token("loust",loust(self.make_loust(e))))
+                p=r+1
+            else:
+                rep.append(tok[p])
+                p+=1
+        return rep
+    def eval_loust(self,t:Token):
+        n=[]
+        p=0
+        while p<len(t.value.val):
+            if type(t.value.val[p])==Token and t.value.val[p].type=="loust":
+                n.append(self.eval_loust(t.value.val[p]))
+                p+=1
+            elif type(t.value.val[p])==Token and not(t.value.val[p].type==TOKENS[","]):
+                e=[]
+                first=p
+                b=p
+                while b<len(t.value.val)and not(type(t.value.val[b])==Token and t.value.val[b].type==TOKENS[","]):
+                    e.append(t.value.val[b])
+                    b+=1
+                f=self.evalExpr(Expr(self.makeExpr(e)))
+                last=b-1
+                m=True
+                for i in range(len(t.value.val)):
+                    if first<=i<=last:
+                        if m:
+                            e.append(f)
+                    else:
+                        n.append(t.value.val[i])
+                p=b
+            else:
+                p+=1
+        return n     
+            
     def evalExpr(self,expr:Expr):
         global VARS
+        expr=Expr(self.make_loust(expr.tok))
+        for i in range(len(expr.tok)):
+            if isinstance(expr.tok[i],Token) and expr.tok[i].type=="loust":
+                expr.tok[i]=Expr(self.eval_loust(expr.tok[i]))
+                
         for i in range(len(expr.tok)):
             if isinstance(expr.tok[i],Expr):
                 expr.tok[i]=self.evalExpr(expr.tok[i])
             if type(expr.tok[i])==Token and expr.tok[i].type==TOKENS["identifier"]:
                 if expr.tok[i].value in VARS.keys():
                     name=expr.tok[i].value
+                    """ if i+2<len(expr.tok):
+                        l=i+1
+                        r=findPar(expr.tok,l,TOKENS["["],TOKENS["]"])
+                        if r==None:print("eeroor '[' never closed");exit()
+                        e=[]
+                        for k in range(l+1,r):
+                            e.append(expr.tok[k])
+                        #laaaaaaaaaaaaaaaa
+                    name=expr.tok[i].value"""
                     expr.tok[i]=Token(VARS[name]["type"],VARS[name]["value"].value,expr.tok[i].line_start,expr.tok[i].line_end)
         for i in range(len(expr.tok)):
             if type(expr.tok[i])==FuncCall:
@@ -161,7 +230,6 @@ class Parser:
             if len(expr.tok)==1:
                 return expr.tok[0]
             elif len(expr.tok)>1:
-                print(expr)
                 print(Error(expr.tok[0].line_start,expr.tok[0].line_end,"error in expression",self.fn))
                 exit()
             else:
@@ -505,6 +573,35 @@ class Parser:
                         funcs[name.value]["key"](val)
                         self.ptr=r+1
                     elif name.value in VARS.keys():
+                        """
+                        if self.tokens[name_idx+1].type==TOKENS["["]:
+                            l=name_idx+1
+                            r=findPar(self.tokens,l,TOKENS["["],TOKENS[']'])
+                            if r==None:print(Error(self.tokens[l].line_start,self.tokens[l].line_end,"'[' was never closed",self.fn));exit()
+                            e=[]
+                            for i in range(l+1,r):
+                                e.append(self.tokens[i])
+                            e=self.evalExpr(Expr(self.makeExpr(e)))
+                            if VARS[name.value]["value"].value.__class__.__name__=="string":
+                                if e.value.__class__.__name__!="ount":
+                                    n=[]
+                                    semi=None
+                                    if self.tokens[r+1].type!=TOKENS["="]:print("error");exit()
+                                    for i in range(name_idx+2,len(self.tokens)):
+                                        if self.tokens[i].type==TOKENS[";"]:semi=i;break
+                                        n.append(self.tokens[i])
+                                    if semi==None:
+                                        print(Error(self.tokens[name_idx].line_start,self.tokens[name_idx].line_end,"missing ';' ",self.fn))
+                                        exit()
+                                    val=self.evalExpr(Expr(self.makeExpr(n).copy())) 
+                                    if isinstance(val,Error):return val
+                                    if val.value.__class__.__name__!=VARS[name.value]["value"].value.__class__.__name__:
+                                        print(Error(name.line_start,name.line_end,f"missmatch type '{type_.type}' was expected but '{val.value.__class__.__name__}' was returned",self.fn))
+                                        exit()
+                                    if type(val.value)!=string:print('eerrror');exit()
+                                    VARS[name.value]["value"].value.set_idx(e,n)
+                                else:pass
+                        """
                         e=[]
                         semi=None
                         for i in range(name_idx+2,len(self.tokens)):
@@ -562,4 +659,4 @@ def run(fn,text):
             return 1
 
 
-run(__file__,open('main.qel',"r").read())
+run(__file__,open(os.path.dirname(__file__)+'/main.qel',"r").read())
