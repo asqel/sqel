@@ -1,8 +1,10 @@
 
 
-ount i=10;
+ount i=2;
 ount fin =to_ount(input());
 floap t=time();
+/*this will calculate every prime number to 'fin' */
+
 while (i<fin){
     boolean p=1b;
     ount k=2;
